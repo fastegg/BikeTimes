@@ -1,0 +1,73 @@
+body {
+  padding-top: 50px;
+}
+
+.container-padding {
+	padding-top: 40px;
+}
+
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+
+.data-table-main td
+{
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.data-table-main h2
+{
+	margin-top: 2px;
+	margin-bottom: 1px;
+}
+
+.data-table col:nth-child(n+2)
+{
+	border-left: solid 1px;
+	border-color: #CCC;
+}
+
+.data-table td
+{
+	padding-left: 10px;
+}
+
+.data-table th
+{
+	padding-left: 10px;
+}
+
+.no-margin
+{
+	margin: 0px;
+}
+
+.subheader
+{
+	font-size: 20px;
+}
+
+.subtext
+{
+	font-size: 10px;
+}
+
+.detail-date
+{
+	margin:0px;
+}
+
+.detail-title
+{
+	margin-top: 0px;
+	margin-bottom: 15px;
+}
+
+.detail-description
+{
+	margin: 0px;
+}

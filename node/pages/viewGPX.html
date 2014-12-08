@@ -1,0 +1,114 @@
+<html>
+<head>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+<script src="custom/viewGPX.js"></script>
+
+<link href="style/main.css" rel="stylesheet">
+</head>
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Race Pace</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container container-padding">
+      <!-- Details -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Details</h3>
+        </div>
+        <div class="panel-body">
+          <table class="data-table">
+            <col style="width: 50%"><col style="width: 50%">
+            <tr><td>
+              <p class="detail-date text-muted">1:50 PM on Friday, August 29, 2014</p>
+              <h2 class="detail-title">08/29/2014 Olympic Valley, California USA</h2>
+              <p class="detail-description">This was a fun ride around lake tahoe!</p>
+            </td>
+            <td>
+              <h4 class="text-primary">Race Pace Conversion Stats:</h4>
+              <p>Stops Detected: 5</p>
+              <p>Total Time Removed: 45 seconds</p>
+              <p>Average speed gained: 1.2MPH</p>
+              <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download GPX</button>
+            </td>
+          </tr>
+        </table>
+        </div>
+      </div>
+
+      <!-- General Info and Map -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Overview</h3>
+        </div>
+        <div class="panel-body" style="position: relative">
+          <div id="map_canvas" style="width: 100%; height: 500px;"></div>
+          <ul class="list-group summary" style="position: absolute; top: 5px; left: 5px">
+
+            <li class="list-group-item">
+              <table class="data-table-main data-table">
+                <col><col><col>
+                <tr><td><h2><bold>49.6<span class="subheader">mi</span></bold></h2></td><td><h2 class="text-primary"><bold>1:23:45</bold></h2></td><td><h2><bold>2245<span class="subheader">ft</span></bold></h2></td></tr>
+                <tr><td><p><bold>Distance</bold></p></td><td><p class="text-primary"><bold>Race Pace</bold></p></td><td><p>Gain</p></td></tr>
+              </table>
+            </li>
+            <li class="list-group-item">
+              <table class="data-table-secondary data-table" style="width: 100%">
+                <col><col><col>
+                <tr><th></th><th>Avg</th><th>Max</th></tr>
+                <tr><td><p>Speed:</p></td><td><p>14.9<span class="subtext">MPH</span></p></td><td><p>42.9<span class="subtext">MPH</span></p></td></tr>
+              </table>
+              <p class="text-muted no-margin">Moving Time: 1:25:11</p>
+              <p class="text-muted no-margin">Elapsed Time: 1:32:45</p>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Graphs -->
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Analysis</h3>
+        </div>
+        <div class="panel-body">
+          <div id="graph-canvas-ele" style="width: 100%; height: 200px;"></div>
+          <div id="graph-canvas-spd" style="width: 100%; height: 150px;"></div>
+        </div>
+      </div>
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+  </body>
+ </html>
