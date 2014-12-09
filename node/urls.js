@@ -1,7 +1,23 @@
 var pages = require('./cachePages.js');
 var sessionGPX = require('./sessionGPX.js');
+var stencil = require('./lib/stencil.js');
+
+stencil.loadStencils(process.cwd() + '/stencils/');
 
 module.exports.gets = {
+	exampleHTML: {
+		url: '/example',
+		func: function(req, res) {
+			console.log('Getting example page...', req.session.views);
+			
+			var rootObj = {};
+
+			rootObj.session = req.session;
+
+			res.end(stencil.fillStencil('example', rootObj));
+		}
+	},
+
 	home: {
 		url: '/',
 		func: function(req, res) {
