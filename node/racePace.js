@@ -238,7 +238,6 @@ function smoothenStops(trkpts, removeLocations)
 		{
 			var pct = fTimeSpot / fTimeToTravel;
 			var fKPH = lerp(trkpts[start].kph, trkpts[end].kph, pct);
-			//fKPH = (fKPH + trkpts[nextpt-1].kph) / 2;
 			var fTimeDifference = (fTimeSpot + fTimeStart) - GPXTimeToDate(trkpts[nextpt-1].time[0]).getTime();
 			var fDistToTravel = (fKPH / 3600000) * fTimeDifference;
 
@@ -261,13 +260,8 @@ function smoothenStops(trkpts, removeLocations)
 		{
 			var ptsRemoved = end-nextpt+1;
 
-			console.log('pts Removed: ' + ptsRemoved);
-
 			fTimeRemoved = GPXTimeToDate(trkpts[end+1].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt].time[0]).getTime();
-			//Remove the points on the end
 			trkpts.splice(nextpt,ptsRemoved);
-
-			//trkpts[nextpt].dist = trkpts[nextpt-1].dist + fLeftOverDist;
 		}
 
 		if(fLeftOverDist > 0 || fLeftOverTime > 0)
@@ -278,7 +272,6 @@ function smoothenStops(trkpts, removeLocations)
 			{
 				for(iDist=nextpt;iDist<trkpts.length;iDist++)
 				{
-					console.log('Checking: ' + iDist);
 
 					trkpts[iDist].time[0] = DateToGPXTime(new Date(GPXTimeToDate(trkpts[iDist].time[0]).getTime() - fTimeRemoved));
 					trkpts[iDist].dist -= fDistLost;
@@ -290,8 +283,6 @@ function smoothenStops(trkpts, removeLocations)
 					//var fNewDist = fOldDist * (1-pct);
 					var fNewDist = (fTargetKPH / 3600000) * fTimeBetween;
 					
-					console.log('Left Over KPH: ' + fLeftOverKPH);
-					console.log('Last KPH: ' + trkpts[iDist].kph);
 
 					trkpts[iDist].dist = trkpts[iDist-1].dist + fNewDist;
 
@@ -301,12 +292,8 @@ function smoothenStops(trkpts, removeLocations)
 					trkpts[iDist].kph = KPH(trkpts[iDist].dist - trkpts[iDist-1].dist, fTimeBetween / 1000);
 					//trkpts[iDist].kph = fTargetKPH;
 
-					console.log('Time Between: ' + fTimeBetween);
 
-					console.log('Target KPH: ' + fTargetKPH);
-					console.log('Actual KPH: ' + trkpts[iDist].kph);
 
-					console.log('Left Over Dist: ' + fLeftOverDist);
 				}
 
 				if(fLeftOverDist)
@@ -393,34 +380,28 @@ function calcRacePace(gpxStruct)
 			var j;
 			var bCurrentlyStopped = false;
 
-			console.log('Remove Stops!');
 			var newpts = removeStops(trk.trkseg[n].trkpt, newRemoveLocations);
 
 			newseg.push({trkpt: newpts});
 			removeLocations.push(newRemoveLocations);
 		}
 
-		console.log('Cleanup...');
 
 		newtrk.push({trkseg: newseg});
 
 		gpxStruct.racePace.gpx.trk = newtrk;
 
-		console.log('Calc moving time');
 		//Calculate moving time
 		gpxStruct.details.movingTime = gpx_calcElapsedTime(gpxStruct.racePace.gpx.trk);
 
 		for(n=0;n<trk.trkseg.length;n++)
 		{
-			console.log('Smoothen stops...');
 			smoothenStops(newtrk[i].trkseg[n].trkpt, removeLocations[n]);	
 
-			console.log('Preserver GPX data...');
 			perserveGPXData(trk.trkseg[n].trkpt, newtrk[i].trkseg[n].trkpt);
 		}
 
 		//Calculate race pace time
-		console.log('Calc race pace...');
 		gpxStruct.details.racePaceTime = gpx_calcElapsedTime(gpxStruct.racePace.gpx.trk);
 	}
 }
