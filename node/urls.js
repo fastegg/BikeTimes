@@ -4,33 +4,41 @@ var stencil = require('./lib/stencil.js');
 
 stencil.loadStencils(process.cwd() + '/stencils/');
 
+function fillStencil(stencilName, req, res)
+{
+	var rootObj = {};
+
+	rootObj.req = req;
+
+	return stencil.fillStencil(stencilName, rootObj);
+}
+
 module.exports.gets = {
 	exampleHTML: {
 		url: '/example',
 		func: function(req, res) {
-			console.log('Getting example page...', req.session.views);
-			
-			var rootObj = {};
-
-			rootObj.session = req.session;
-
-			res.end(stencil.fillStencil('example', rootObj));
+			res.end(fillStencil('example', req, res));
 		}
 	},
 
 	home: {
 		url: '/',
 		func: function(req, res) {
-			var iViews = req.session.views || 0;
-			req.session.views = ++iViews;
-			res.send(pages.getPage('home.html'));
+			res.end(fillStencil('home', req, res));
 		}
 	},
 
 	about: {
 		url: '/about',
 		func: function(req, res) {
-			res.send(pages.getPage('about.html'));
+			res.end(fillStencil('about', req, res));
+		}
+	},
+
+	contact: {
+		url: '/contact',
+		func: function(req, res) {
+			res.end(fillStencil('contact', req, res));
 		}
 	},
 
