@@ -2,7 +2,7 @@
 <head>
 	<script src="code/readGPX.js"></script>
 
-	<span data-stencil='mainIncludes'></span>
+	<span data-stencil='head'></span>
 </head>
 <body>
 	<span data-stencil='navbar'></span>
@@ -18,10 +18,11 @@
 		      <script>
 		        document.getElementById('gpxFileSelect').addEventListener('change', readGPXFile, false);
 		      </script>
-		      <p><a class="btn btn-primary btn-lg" onclick='$("#gpxFileSelect").click();' role="button">Upload .GPX File</a> Or <a class="btn btn-primary btn-lg" href="#" role="button">Sign into Strava</a></p>
+		      <p><a class="btn btn-primary btn-lg" onclick="$('#gpxFileSelect').click();" role="button">Upload .GPX File</a> Or <a class="btn btn-primary btn-lg" href="#" role="button">Sign into Strava</a></p>
 		    </div>
 		</div>
 	</div>
 	<span data-stencil='footer'></span>
+	<span data-stencil='last'></span>
 </body>
 </html>
