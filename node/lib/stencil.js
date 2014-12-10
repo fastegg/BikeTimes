@@ -150,7 +150,7 @@ stencil.prototype.loadStencilsRecurse = function(stencilPath)
 			this.stencils[internalName] = {};
 
 			var html = fs.readFileSync(stencilPath + '\\' + filenames[i]);
-			var $ = cheerio.load(html);
+			var $ = cheerio.load(html, {decodeEntities: false});
 			var parsed = $._root;
 			
 			parseRecurse(parsed, 'root');
@@ -197,6 +197,8 @@ function evalArgs(obj, root, args)
 	return rtn;
 }
 
+var sCount = 0;
+
 function fillRecurse($, obj, objType, root)
 {
 	var objReturn = {
@@ -205,7 +207,7 @@ function fillRecurse($, obj, objType, root)
 		'name': $.name,
 		'children': []
 	};
-
+	
 	if($.dataif)
 	{
 		if(!evalArgs(obj, root, $.dataif))
@@ -253,8 +255,9 @@ function fillRecurse($, obj, objType, root)
 		{
 			if(objType === '[object Object]')
 			{
+				var rtn = module.exports.fillStencilWithObj($.dataStencil, obj, root);
 				//objReturn.children.push(module.exports.fillStencilWithObj($.dataStencil, obj, root));
-				return module.exports.fillStencilWithObj($.dataStencil, obj, root);
+				return rtn;
 			}
 			else
 			{
@@ -291,6 +294,21 @@ function fillRecurse($, obj, objType, root)
 			objReturn.children.push(fillRecurse($.children[n], obj, objType, root));
 		}
 	}
+	else if($.type === 'script')
+	{
+		objReturn.attribs = {};
+		
+		//Copy all the attribs
+		for(var attrib in $.attribs)
+		{
+			objReturn.attribs[attrib] = $.attribs[attrib];
+		}
+
+		for(n in $.children)
+		{
+			objReturn.children.push(fillRecurse($.children[n], obj, objType, root));
+		}
+	}
 
 	return objReturn;
 }
@@ -308,7 +326,7 @@ stencil.prototype.fillStencil = function(stencil, root)
 	
 	objFilledStencil.html = this.stencils[stencil].$.html;
 	
-	return cheerio.html(objFilledStencil);
+	return cheerio.html(objFilledStencil, {decodeEntities: false});
 }
 
 module.exports = new stencil();
