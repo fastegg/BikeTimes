@@ -4,6 +4,25 @@ var cheerio = require('cheerio');
 
 var pathExpr = /\{([\.a-z|A-Z].*?)\}/;
 
+String.prototype.map = function(choices, returnOrig)
+{
+	var choicelst = choices.split(', ');
+
+	for(var i in choicelst)
+	{
+		var tkn = choicelst[i].split(':');
+
+		//For some reason tkn and this are not the same type, so === will fail here :(
+		if(tkn.length === 2 && this == tkn[0])
+			return tkn[1];
+	}
+
+	if(returnOrig)
+		return this;
+	else
+		return '';
+}
+
 var stencil = function()
 {
 	this.stencils = {};
@@ -40,14 +59,19 @@ function evaluateArgs(pathVar)
 
 	if(pathVar.indexOf('{') === -1)
 	{
+		var replaceWith;
 		if(pathVar.indexOf('.') === 0)
 		{
-			return 'obj' + pathVar;
+			replaceWith = 'obj' + pathVar;
 		}
 		else
 		{
-			return 'root.' + pathVar;
+			replaceWith = 'root.' + pathVar;
 		}
+
+		rtn.args[pathVar] = replaceWith;
+
+		return rtn;
 	}
 	else
 	{
@@ -58,7 +82,6 @@ function evaluateArgs(pathVar)
 
 			rtn.args[res[0]] = replaceWith;
 		}
-
 		return rtn;
 	}
 }
@@ -110,18 +133,15 @@ function parseRecurse($, curPath)
 	}
 }
 
-stencil.prototype.loadStencils = function(stencilPath)
+stencil.prototype.loadStencilsRecurse = function(stencilPath)
 {
-	console.log('Loading Stencils...');
-	var sPath = path.resolve(stencilPath);
-
-	var filenames = fs.readdirSync(sPath);
+	var filenames = fs.readdirSync(stencilPath);
 	var i;
 	var iCount = 0;
 
 	for(i=0;i<filenames.length;i++)
 	{
-		var stat = fs.statSync(sPath + '\\' + filenames[i]);
+		var stat = fs.statSync(stencilPath + '\\' + filenames[i]);
 
 		if(stat.isFile())
 		{
@@ -129,7 +149,7 @@ stencil.prototype.loadStencils = function(stencilPath)
 			
 			this.stencils[internalName] = {};
 
-			var html = fs.readFileSync(sPath + '\\' + filenames[i]);
+			var html = fs.readFileSync(stencilPath + '\\' + filenames[i]);
 			var $ = cheerio.load(html);
 			var parsed = $._root;
 			
@@ -143,11 +163,38 @@ stencil.prototype.loadStencils = function(stencilPath)
 		}
 		else if(stat.isDirectory())
 		{
-			this.loadStencils(sPath + '\\' + filenames[i]);
+			iCount += this.loadStencilsRecurse(stencilPath + '\\' + filenames[i]);
 		}
 	}
 
+	return iCount;
+}
+
+stencil.prototype.loadStencils = function(stencilPath)
+{
+	console.log('Loading Stencils...');
+	var sPath = path.resolve(stencilPath);
+
+	var iCount = this.loadStencilsRecurse(sPath);
+
 	console.log('Finished. ' + iCount + ' stencils loaded');
+}
+
+function evalArgs(obj, root, args)
+{
+	var rtn = '';
+	try
+	{
+		rtn = eval(args);
+	}
+	catch(err)
+	{
+		console.log('Error evaluating stencil expression!', args);
+
+		throw(err);
+	}
+
+	return rtn;
 }
 
 function fillRecurse($, obj, objType, root)
@@ -159,6 +206,12 @@ function fillRecurse($, obj, objType, root)
 		'children': []
 	};
 
+	if($.dataif)
+	{
+		if(!evalArgs(obj, root, $.dataif))
+			return;
+	}
+
 	if($.type === 'text')
 	{
 		if(objType === '[object String]' || objType ===  '[object Number]')
@@ -168,12 +221,6 @@ function fillRecurse($, obj, objType, root)
 	}
 	else if($.type === 'tag')
 	{
-		if($.dataif)
-		{
-			if(!eval($.dataif))
-				return;
-		}
-
 		objReturn.attribs = {};
 		
 		//Copy all the attribs
@@ -186,19 +233,19 @@ function fillRecurse($, obj, objType, root)
 				
 				for(var arg in $.dataset[attribName].args)
 				{
-					var result = eval($.dataset[attribName].args[arg]);
-					objReturn.attribs[attribName] = objReturn.attribs[attribName].replace(new RegExp(arg, 'g'), result);
+					var result = evalArgs(obj, root, $.dataset[attribName].args[arg]);
+					objReturn.attribs[attribName] = objReturn.attribs[attribName].replace(arg, result);
 				}
 			}
 			else
 			{
-				objReturn.attribs[attrib] = $.attribs[attrib];	
+				objReturn.attribs[attrib] = $.attribs[attrib];
 			}
 		}
 
 		if($.dataPath)
 		{
-			obj = eval($.dataPath);
+			obj = evalArgs(obj, root, $.dataPath);
 			objType = Object.prototype.toString.call(obj);
 		}
 
@@ -206,7 +253,8 @@ function fillRecurse($, obj, objType, root)
 		{
 			if(objType === '[object Object]')
 			{
-				objReturn.children.push(module.exports.fillStencilWithObj($.dataStencil, obj, root));
+				//objReturn.children.push(module.exports.fillStencilWithObj($.dataStencil, obj, root));
+				return module.exports.fillStencilWithObj($.dataStencil, obj, root);
 			}
 			else
 			{
