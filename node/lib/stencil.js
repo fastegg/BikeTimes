@@ -133,6 +133,11 @@ function parseRecurse($, curPath)
 	}
 }
 
+stencil.prototype.dirChange = function(event, filename)
+{
+	stencilObj.loadStencils(stencilObj.stencilPath);
+}
+
 stencil.prototype.loadStencilsRecurse = function(stencilPath)
 {
 	var filenames = fs.readdirSync(stencilPath);
@@ -163,6 +168,8 @@ stencil.prototype.loadStencilsRecurse = function(stencilPath)
 		}
 		else if(stat.isDirectory())
 		{
+			fs.watch(stencilPath + '\\' + filenames[i], this.dirChange);
+
 			iCount += this.loadStencilsRecurse(stencilPath + '\\' + filenames[i]);
 		}
 	}
@@ -173,9 +180,12 @@ stencil.prototype.loadStencilsRecurse = function(stencilPath)
 stencil.prototype.loadStencils = function(stencilPath)
 {
 	console.log('Loading Stencils...');
-	var sPath = path.resolve(stencilPath);
 
+	var sPath = path.resolve(stencilPath);
 	var iCount = this.loadStencilsRecurse(sPath);
+
+	fs.watch(sPath, this.dirChange);
+	this.stencilPath = stencilPath;
 
 	console.log('Finished. ' + iCount + ' stencils loaded');
 }
@@ -329,4 +339,6 @@ stencil.prototype.fillStencil = function(stencil, root)
 	return cheerio.html(objFilledStencil, {decodeEntities: false});
 }
 
-module.exports = new stencil();
+var stencilObj = new stencil();
+
+module.exports = stencilObj;
