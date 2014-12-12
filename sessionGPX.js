@@ -112,8 +112,6 @@ function useGPX(req, res, next)
 		        	curSession.uploads = ++uploads;
 		        	curSession.GPX = {};
 		        	curSession.GPX.orig = GPXObj;
-
-		        	console.log('Calc race pace!');
 		        	racePace.calcRacePace(curSession.GPX);
 		        }
 			});
@@ -123,8 +121,7 @@ function useGPX(req, res, next)
 			});
 
 			parser.parseString(fileContents, function (err, result) {
-					console.log('Done!');
-					console.log(err);
+					
 				}
 			);
 		});

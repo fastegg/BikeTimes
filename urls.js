@@ -67,8 +67,7 @@ module.exports.uses = {
 	styleAndCode: {
 		url: ['/code/*.js', '/style/*.css'],
 		func: function(req, res) {
-			console.log('Requesting ' + req.baseUrl);
-			res.send(pages.getPage(req.baseUrl.slice(1)));
+			res.end(pages.getPage(req.baseUrl.slice(1)));
 		}
 	},
 

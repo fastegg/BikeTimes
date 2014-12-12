@@ -5,7 +5,7 @@ function pages(path)
 	var path = process.cwd() + '/pages/';
 	var files = fs.readdirSync(path);
 
-	console.log('Files: ' + files);
+	//console.log('Files: ' + files);
 
 	this.pages = {};
 

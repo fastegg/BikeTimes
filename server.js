@@ -47,5 +47,5 @@ var server = app.listen(app.get('port'), function() {
 	var host = server.address().address;
 	var port = server.address().port;
 
-	console.log("Race Pace listening at http://%s:%s", host, app.get('port'));
+	//console.log("Race Pace listening at http://%s:%s", host, app.get('port'));
 });
