@@ -13,10 +13,15 @@ function fillStencil(stencilName, req, res)
 	return stencil.fillStencil(stencilName, rootObj);
 }
 
+String.prototype.checkExt = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
 module.exports.gets = {
 	exampleHTML: {
 		url: '/example',
 		func: function(req, res) {
+			res.writeHead(200, {"Content-Type": "text/html"});
 			res.end(fillStencil('example', req, res));
 		}
 	},
@@ -24,6 +29,7 @@ module.exports.gets = {
 	home: {
 		url: '/',
 		func: function(req, res) {
+			res.writeHead(200, {"Content-Type": "text/html"});
 			res.end(fillStencil('home', req, res));
 		}
 	},
@@ -31,6 +37,7 @@ module.exports.gets = {
 	about: {
 		url: '/about',
 		func: function(req, res) {
+			res.writeHead(200, {"Content-Type": "text/html"});
 			res.end(fillStencil('about', req, res));
 		}
 	},
@@ -38,6 +45,7 @@ module.exports.gets = {
 	contact: {
 		url: '/contact',
 		func: function(req, res) {
+			res.writeHead(200, {"Content-Type": "text/html"});
 			res.end(fillStencil('contact', req, res));
 		}
 	},
@@ -55,6 +63,28 @@ module.exports.gets = {
 	viewGPXJS: {
 		url: ['/custom/viewGPX.js'],
 		func: sessionGPX.getJS
+	},
+
+	styleAndCode: {
+		url: ['/code/*.js', '/style/*.css'],
+		func: function(req, res) {
+			if(req.url.checkExt('.js'))
+				res.setHeader("Content-Type", "application/javascript");
+			else
+				res.setHeader("Content-Type", "text/css");
+
+            res.writeHead(200);
+			res.end(pages.getPage(req.url.slice(1)));
+		}
+	},
+
+	error404: {
+		url: '*',
+		func: function(req, res) {
+			res.writeHead(404, {"Content-Type": "text/html"});
+	  		res.write("404, Request not found");
+	  		res.end();
+		}
 	}
 };
 
@@ -62,13 +92,6 @@ module.exports.uses = {
 	session: {
 		url: '*',
 		func: sessionGPX.useSession
-	},
-
-	styleAndCode: {
-		url: ['/code/*.js', '/style/*.css'],
-		func: function(req, res) {
-			res.end(pages.getPage(req.baseUrl.slice(1)));
-		}
 	},
 
 	gpx: {
