@@ -5,6 +5,8 @@ var bb = require('connect-busboy');
 var session = require('cookie-session');
 var errorReport = require('./lib/errorReport.js');
 
+app.set('port', (process.env.PORT || 3000))
+
 app.set('trust proxy', 1); // trust first proxy
 
 //express cookie Session
@@ -41,9 +43,9 @@ for(urlName in urls.posts)
 
 app.use(errorReport);
 
-var server = app.listen(3000, function() {
+var server = app.listen(app.get('port'), function() {
 	var host = server.address().address;
 	var port = server.address().port;
 
-	console.log("Race Pace listening at http://%s:%s", host, port);
+	console.log("Race Pace listening at http://%s:%s", host, app.get('port'));
 });
