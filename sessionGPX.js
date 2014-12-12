@@ -62,6 +62,7 @@ function useSessionGPX(req, res, next)
 
 	if(req.session.id)
 	{
+		console.log('I think my session is: ' + req.session.id);
 		curSession = sessions[req.session.id];
 	}
 
