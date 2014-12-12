@@ -1,0 +1,28 @@
+{
+  "name": "racepace",
+  "description": "Add on tools to help athletes who use Strava and GPX devices",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "express": "3.x",
+    "body-parser": "~1.10.0",
+    "cheerio": "~0.18.0",
+    "connect-busboy": "0.0.2",
+    "cookie-session": "~1.1.0",
+    "xml2js": "~0.4.4"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fastegg/BikeTimes.git"
+  },
+  "author": "Michael McCarry",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/fastegg/BikeTimes/issues"
+  }
+}

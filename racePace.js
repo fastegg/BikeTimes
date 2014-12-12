@@ -1,21 +1,31 @@
+var deepcopy = require('./lib/deepcopy.js');
 
-//Distance functions, assuming vec are GPS locations
-// Vec2 
-// {
-//		var lat;
-//		var lon;	
-// }
-function vec2DistSquared(v1, v2)
+module.exports = {};
+
+module.exports.calcRacePace = calcRacePace;
+
+/////////////////////////////////////////////
+//
+// Helper Functions
+//
+/////////////////////////////////////////////
+
+//Assumed GPX time format: YYYY-MM-DDTHH:MM:SS.MILSZ
+function GPXTimeToDate(timeStamp)
 {
-	var xd = v2.lat-v1.lat;
-	var yd = v2.lon-v1.lon;
-
-	return (xd*xd + yd*yd);
+	var sDate = new Date(timeStamp);
+	return sDate;
 }
 
-function vec2Dist(v1, v2)
+function pad(num, size) {
+    var s = num+"";
+    while (s.length < size) s = "0" + s;
+    return s;
+}
+
+function DateToGPXTime(sDate)
 {
-	Math.sqrt(vec2DistSquared);
+	return sDate.getUTCFullYear() + "-" + (pad(sDate.getUTCMonth() + 1,2)) + "-" + pad(sDate.getUTCDate(),2) + "T" + pad(sDate.getUTCHours(),2) + ":" + pad(sDate.getUTCMinutes(),2) + ":" + pad(sDate.getUTCSeconds(),2) + "." + pad(sDate.getUTCMilliseconds(),3) + "Z";
 }
 
 function toRadians(deg)
@@ -26,19 +36,21 @@ function toRadians(deg)
 function GPXDistToKM(v1, v2)
 {
 	var R = 6371; // km
-	var o1 = toRadians(v1.lat)
-	var o2 = toRadians(v2.lat);
-	var ao = toRadians(v2.lat-v1.lat);
-	var ah = toRadians(v2.lon-v1.lon);
+	var o1 = toRadians(v1.$.lat)
+	var o2 = toRadians(v2.$.lat);
+	var ao = toRadians(v2.$.lat-v1.$.lat);
+	var ah = toRadians(v2.$.lon-v1.$.lon);
 
 	var a = Math.sin(ao/2) * Math.sin(ao/2) +
 	        Math.cos(o1) * Math.cos(o2) *
 	        Math.sin(ah/2) * Math.sin(ah/2);
+
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
 	return d = R * c;
 }
 
+//Returns the Kilometers per hour.
 function KPH(km, seconds)
 {
 	var d = 3600 / seconds;
@@ -46,229 +58,350 @@ function KPH(km, seconds)
 	return km*d;
 }
 
+function gpx_calcElapsedTime(trk)
+{
+	var trks;
+	var trksegs;
+	var trkpts;
 
-function pad(num, size) {
-    var s = num+"";
-    while (s.length < size) s = "0" + s;
-    return s;
+	trks = trk.length-1;
+	trksegs = trk[trks].trkseg.length-1;
+	trkpts = trk[trks].trkseg[trksegs].trkpt.length-1;
+
+	return GPXTimeToDate(trk[trks].trkseg[trksegs].trkpt[trkpts].time[0]).getTime() - GPXTimeToDate(trk[0].trkseg[0].trkpt[0].time[0]).getTime();
 }
 
-//Assumed GPX time format: YYYY-MM-DDTHH:MM:SS.MILSZ
-function GPXTimeToDate(timeStamp)
-{
-	var sDate = new Date(timeStamp);
-
-	return sDate;
+function lerp(a, b, p) {
+	return a + p * (b - a);
 }
 
-function DateToGPXTime(sDate)
+/////////////////////////////////////////////
+//
+// Main exported function
+//
+/////////////////////////////////////////////
+
+function removeStops(origpts, removeLocations)
 {
-	return sDate.getUTCFullYear() + "-" + (pad(sDate.getUTCMonth() + 1,2)) + "-" + pad(sDate.getUTCDate(),2) + "T" + pad(sDate.getUTCHours(),2) + ":" + pad(sDate.getUTCMinutes(),2) + ":" + pad(sDate.getUTCSeconds(),2) + "." + pad(sDate.getUTCMilliseconds(),3) + "Z";
-}
-
-function fillKPHForData(gpsList, index, dataOut)
-{
-	for(i=1;i<gpsList.length;i++)
-	{
-		var curLoc = gpsList[i];
-		var prevLoc = gpsList[i-1];
-
-		var fDist = GPXDistToKM(curLoc,prevLoc);
-
-		if(dataOut[i] === undefined)
-			dataOut[i] = [i];
-
-		dataOut[i][index] = KPH(fDist,5);
-	}
-
-	for(;i<dataOut.length;i++)
-	{
-		dataOut[i][index] = undefined;
-	}
-}
-
-function lerp(a,b,f)
-{
-	return a + f * (b - a);
-}
-
-/*
-function rp_moveLoc(gpsList,iLoc,fSeconds);
-{
-
-}
-*/
-
-function rp_calc(gpsList)
-{
-	var fTimeRemoved = 0;
-	var fTimeRemoving = 0;
-	var fLeftOverTime = 0;
+	var newpts = [];
 	var i;
-	var iRemoveStart = 0;
-	var output = "<table><tr><th>Index</th><th>Time</th><th>Distance</th><th>KPH</th><th>New Time</th></tr>";
-	var fDistAdd = 0;
+	var fTimeRemoved = 0;
+	var bCurrentlyStopped = false;
+	var fRPDist = 0;
 
-	for(i=1;i<gpsList.length;i++)
+	for(i=0;i<origpts.length;i++)
 	{
-		var curLoc = gpsList[i];
-		var prevLoc = gpsList[i-1];
-		var nextLoc = gpsList[i+1];
-		
-		var fDist = GPXDistToKM(curLoc,prevLoc);
+		var lastpt;
+		var curpt;
+		var newpt;
 
-		var prevTime = 0;
-		
-		output += "<tr><td>" + i + "</td><td>" + curLoc.time + "</td><td>" + fDist + "</td><td>" + KPH(fDist,5) + "</td>";
-
-		if(fTimeRemoved > 0)
+		if(i===0)
 		{
-			prevTime = GPXTimeToDate(curLoc.time);
-			curLoc.time = DateToGPXTime(new Date(GPXTimeToDate(curLoc.time).getTime() - fTimeRemoved));
-		}
+			curpt = origpts[i];
 
-		if(fLeftOverTime > 0 && nextLoc != undefined)
-		{
-			curLoc.lat = lerp(curLoc.lat,nextLoc.lat,fLeftOverTime/5);
-			curLoc.lon = lerp(curLoc.lon,nextLoc.lon,fLeftOverTime/5);
-			curLoc.ele = lerp(curLoc.ele,nextLoc.ele,fLeftOverTime/5);
-		}
-		
-		if(KPH(fDist,5) < 3)
-		{
-			var fLastTime = fTimeRemoving;
+			curpt.dist = 0;
+			curpt.kph = 0;
 
-			fTimeRemoving += GPXTimeToDate(curLoc.time).getTime() - GPXTimeToDate(prevLoc.time).getTime();
+			newpt = deepcopy(curpt);
 
-			if(iRemoveStart === 0)
-				iRemoveStart = i;
-
-			output += "<td>REMOVED!</td></tr>"
+			newpts.push(newpt);
+			
+			continue;
 		}
 		else
 		{
-			if(iRemoveStart > 0)
+			curpt = origpts[i];
+			lastpt = origpts[i-1];
+		}
+
+		newpt = deepcopy(curpt);
+
+		if(fTimeRemoved > 0)
+		{
+			var prevTime = GPXTimeToDate(newpt.time[0]);
+			newpt.time[0] = DateToGPXTime(new Date(GPXTimeToDate(newpt.time[0]).getTime() - fTimeRemoved));
+		}
+
+		var fDist = GPXDistToKM(curpt, lastpt);
+		var fTimeBetween = (new Date(GPXTimeToDate(curpt.time[0]))).getTime() - (new Date(GPXTimeToDate(lastpt.time[0]))).getTime();
+		var fKPH = KPH(fDist, fTimeBetween / 1000);
+
+		//Save these to the orig data
+		curpt.dist = lastpt.dist + fDist;
+		curpt.kph = fKPH;
+
+		if(fKPH < 3	|| bCurrentlyStopped === true && fKPH < 5)
+		{
+			if(bCurrentlyStopped === false)
 			{
-				curLoc.time = DateToGPXTime(new Date(GPXTimeToDate(curLoc.time).getTime() - fTimeRemoving));
-				gpsList.splice(iRemoveStart,i-iRemoveStart);
-				i-=i-iRemoveStart;
-				iRemoveStart = 0;
-				fTimeRemoved += fTimeRemoving;
-
-				output += "<td>Removing: " + fTimeRemoving + " seconds - " + curLoc.time + "</td></tr>"
-
-				fTimeRemoving = 0;
-
-				var iScaleStart = i;
-				var iScaleEnd = i + 1;
-				var fLastKPH = 0;
-				var scalePrevLoc;
-				var scaleCurLoc;
-				var curKPH;
-				var dist;
-				var distCovered = 0;
-				var startKPH;
-
-				while(iScaleStart > 1 && iScaleStart > i - 2)
-				{
-					scalePrevLoc = gpsList[iScaleStart-1];
-					scaleCurLoc = gpsList[iScaleStart];
-					dist = GPXDistToKM(scaleCurLoc,scalePrevLoc);
-					curKPH = KPH(dist,5);
-
-					if(curKPH < fLastKPH + 2.0)
-						break;
-
-					distCovered += dist;
-					iScaleStart--;
-				}
-
-				startKPH = curKPH;
-				fLastKPH = 100000.0;
-
-				while (iScaleEnd < gpsList.length && iScaleEnd < i + 2)
-				{
-					scalePrevLoc = gpsList[iScaleEnd-1];
-					scaleCurLoc = gpsList[iScaleEnd];
-					dist = GPXDistToKM(scaleCurLoc,scalePrevLoc);
-					curKPH = KPH(dist,5);
-					if(curKPH > fLastKPH - 2.0)
-						break;
-
-					distCovered += dist;
-					iScaleEnd++;
-				}
-
-				console.log("Scale start and end: " + iScaleStart + " : " + iScaleEnd + "(" + curKPH + ":" + startKPH +")");
-
-				var avgKPH = (curKPH + startKPH) / 2;
-				var seconds = distCovered / avgKPH * 3600;
-				var intervals = seconds / 5;
-
-				console.log("Distance covered: " + distCovered);
-				console.log("Intervals: " + intervals);
-				console.log("KPH:" + avgKPH);
-				console.log("Seconds: " + seconds);
-
-				for(var interval = 0; interval < intervals; interval++)
-				{
-					var intervalKPH = lerp(startKPH,curKPH,interval/intervals);
-					var intervalDist = intervalKPH / 3600 * 5;
-					var iJumps = 0;
-
-					scaleCurLoc = gpsList[iScaleStart + interval];
-					var scaleNextLoc = gpsList[iScaleStart + interval + 1];
-
-					dist = GPXDistToKM(scaleCurLoc,scaleNextLoc);
-
-					while(intervalDist > dist)
-					{
-						intervalDist -= dist;
-						iJumps++;
-
-						scaleCurLoc = gpsList[iScaleStart + interval + iJumps];
-						scaleNextLoc = gpsList[iScaleStart + interval + 1 + iJumps];
-
-						dist = GPXDistToKM(scaleCurLoc,scaleNextLoc);
-					}
-
-					var fDistPercentage = intervalDist / dist;
-
-					//Just in case it changed during the while statement above
-					scaleNextLoc.lat = lerp(scaleCurLoc.lat,scaleNextLoc.lat,fDistPercentage);
-					scaleNextLoc.lon = lerp(scaleCurLoc.lon,scaleNextLoc.lon,fDistPercentage);
-					scaleNextLoc.ele = lerp(scaleCurLoc.ele,scaleNextLoc.ele,fDistPercentage);
-
-					if(iJumps)
-					{
-						gpsList.splice(iScaleStart+interval+1,iJumps);
-						fTimeRemoved += 5000 * iJumps;
-					}
-				}
-
-				fLeftOverTime += seconds - Math.floor(intervals) * 5;
-
-				if(fLeftOverTime > 5)
-				{
-					fLeftOverTime -= 5.0;
-					fTimeRemoved += 5000;
-					gpsList.splice(i,1);
-					i--;
-				}
-
-				console.log("Left Over Time: " + fLeftOverTime);
-
-			}
-			else
-			{
-				output += "<td>" + curLoc.time + "</td></tr>"	
+				bCurrentlyStopped = true;
+				removeLocations.push(newpts.length);
 			}
 
+			fTimeRemoved += fTimeBetween;
+		}
+		else
+		{
+			if(bCurrentlyStopped === true)
+				bCurrentlyStopped = false;
 			
+			fRPDist += fDist;
+			newpt.dist = fRPDist;
+			newpt.kph = fKPH;
+
+			newpts.push(newpt);
 		}
 	}
 
-	output += "</table>";
+	return newpts;
+}
 
-	return output;
+function smoothenStops(trkpts, removeLocations)
+{
+	var i;
+
+	var newLastPoint;
+
+	for(i=removeLocations.length-1;i>=0;i--)
+	{
+		var pos = removeLocations[i];
+
+		var start = pos;
+		var end = pos;
+
+		var fTimeRemoved = 0;
+
+		while(start > 0)
+		{
+				//Remove first
+				start--;
+				
+				//Check to see if the start is more than 15 seconds from pos
+				if(GPXTimeToDate(trkpts[pos].time[0]).getTime() - GPXTimeToDate(trkpts[start].time[0]).getTime() > 15000)
+				{
+					break;
+				}
+
+				//Check to see if the kph has dropped
+				if(trkpts[start].kph < trkpts[start+1].kph)
+				{
+					start++;
+					break;
+				}
+
+				//Check to see if the kph is within 10% of the last kph
+				if(trkpts[start].kph / trkpts[start+1].kph < 1.10)
+				{
+					break;
+				}
+		}
+
+		while(end < trkpts.length-1)
+		{
+			//Remove first, to make sure we don't just check n
+			end++;
+
+			//Check to see if the start is more than 15 seconds from n
+			if(GPXTimeToDate(trkpts[end].time[0]).getTime() - GPXTimeToDate(trkpts[pos].time[0]).getTime() > 15000)
+			{
+				break;
+			}
+
+			//Check to see if the kph has dropped
+			if(trkpts[end].kph < trkpts[end-1].kph)
+			{
+				end--;
+				break;
+			}
+
+			//Check to see if the kph is within 10% of the last kph
+			if( trkpts[end].kph / trkpts[end-1].kph < 1.10)
+			{
+				break;
+			}
+		}
+
+		var fTotalDist = trkpts[end].dist - trkpts[start].dist;
+		var fAvgKPH = (trkpts[start].kph + trkpts[end].kph) / 2;
+		var fTimeToTravel = (fTotalDist/fAvgKPH) * 3600 * 1000 //Time in milliseconds 
+		var nextpt = start+1;
+
+		var fTimeStart = GPXTimeToDate(trkpts[start].time[0]).getTime();
+		var fTimeEnd = GPXTimeToDate(trkpts[end].time[0]).getTime();
+		var fTimeLost = 0;
+		var fTimeSpot = GPXTimeToDate(trkpts[nextpt].time[0]).getTime() - fTimeStart;
+
+		var fLeftOverDist = fTotalDist;
+		var fDistLost = fTotalDist;
+
+		while(fTimeSpot < fTimeToTravel)
+		{
+			var pct = fTimeSpot / fTimeToTravel;
+			var fKPH = lerp(trkpts[start].kph, trkpts[end].kph, pct);
+			var fTimeDifference = (fTimeSpot + fTimeStart) - GPXTimeToDate(trkpts[nextpt-1].time[0]).getTime();
+			var fDistToTravel = (fKPH / 3600000) * fTimeDifference;
+
+			trkpts[nextpt].dist = trkpts[nextpt-1].dist + fDistToTravel;
+			trkpts[nextpt].kph = fKPH;
+
+			fLeftOverDist -= fDistToTravel;
+			fDistLost -= fDistToTravel;
+			
+			nextpt++;
+			fTimeSpot = GPXTimeToDate(trkpts[nextpt].time[0]).getTime() - fTimeStart;
+		}
+
+		var fLeftOverTime = fTimeToTravel - (fTimeSpot - (GPXTimeToDate(trkpts[nextpt].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt-1].time[0]).getTime()));
+		var fLeftOverDist = (trkpts[end].kph / 3600000 * fLeftOverTime);
+		var fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime / 1000);
+		fDistLost -= fLeftOverDist;
+
+		if(nextpt <= end)
+		{
+			var ptsRemoved = end-nextpt+1;
+
+			fTimeRemoved = GPXTimeToDate(trkpts[end+1].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt].time[0]).getTime();
+			trkpts.splice(nextpt,ptsRemoved);
+		}
+
+		if(fLeftOverDist > 0 || fLeftOverTime > 0)
+		{
+			var iDist = nextpt;
+
+			if(fTimeRemoved > 0)
+			{
+				for(iDist=nextpt;iDist<trkpts.length;iDist++)
+				{
+
+					trkpts[iDist].time[0] = DateToGPXTime(new Date(GPXTimeToDate(trkpts[iDist].time[0]).getTime() - fTimeRemoved));
+					trkpts[iDist].dist -= fDistLost;
+
+					var fTimeBetween = GPXTimeToDate(trkpts[iDist].time[0]).getTime() - GPXTimeToDate(trkpts[iDist-1].time[0]).getTime();
+					var pct = fLeftOverTime / fTimeBetween;
+					var fTargetKPH = (fLeftOverKPH * pct + trkpts[iDist].kph * (1-pct));
+					var fOldDist = trkpts[iDist].dist - trkpts[iDist-1].dist;
+					//var fNewDist = fOldDist * (1-pct);
+					var fNewDist = (fTargetKPH / 3600000) * fTimeBetween;
+					
+
+					trkpts[iDist].dist = trkpts[iDist-1].dist + fNewDist;
+
+					fLeftOverDist = fOldDist - fNewDist;
+					fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime / 1000);
+
+					trkpts[iDist].kph = KPH(trkpts[iDist].dist - trkpts[iDist-1].dist, fTimeBetween / 1000);
+					//trkpts[iDist].kph = fTargetKPH;
+
+
+
+				}
+
+				if(fLeftOverDist)
+				{
+						if(newLastPoint === undefined)
+							newLastPoint = deepcopy(trkpts[iDist-1]);
+						
+						newLastPoint.time[0] = DateToGPXTime(new Date(GPXTimeToDate(newLastPoint.time[0]).getTime() + fLeftOverTime));
+						newLastPoint.dist += fLeftOverDist;
+				}
+			}
+		}
+	}
+
+	if(newLastPoint !== undefined)
+		trkpts.push(newLastPoint);
+}
+
+function perserveGPXData(oldtrk, newtrk)
+{
+	var iOld, iNew;
+	var fDist = 0;
+
+	iOld = 0;
+
+	for(iNew = 0; iNew < newtrk.length; iNew++)
+	{
+		while(iOld < oldtrk.length-2 && oldtrk[iOld+1].dist < newtrk[iNew].dist)
+		{
+			iOld++;
+		}
+
+		if(oldtrk[iOld].dist === newtrk[iNew].dist)
+			continue;
+
+		var pct = (newtrk[iNew].dist - oldtrk[iOld].dist) / (oldtrk[iOld+1].dist / oldtrk[iOld].dist);
+
+		newtrk[iNew].$.lon = lerp(oldtrk[iOld].$.lon, oldtrk[iOld+1].$.lon, pct);
+		newtrk[iNew].$.lat = lerp(oldtrk[iOld].$.lat, oldtrk[iOld+1].$.lat, pct);
+	}
+}
+
+function calcRacePace(gpxStruct)
+{
+	var i = 0;
+
+	if(gpxStruct === undefined || gpxStruct.orig === undefined)
+	{
+		return;
+	}
+
+	gpxStruct.racePace = {};
+	gpxStruct.details = {};
+
+	gpxStruct.details.elapsedTime = gpx_calcElapsedTime(gpxStruct.orig.gpx.trk);
+
+	gpxStruct.details.startTime = gpxStruct.orig.gpx.trk[0].trkseg[0].trkpt[0].time[0];
+	
+	gpxStruct.details.movingTime = 0; //Calculated during first main loop
+	gpxStruct.details.racePaceTime = 0; //Calculated uring second main loop
+
+	gpxStruct.details.removeLocations = [];
+
+	gpxStruct.racePace = {};
+	gpxStruct.racePace.gpx = {};
+	
+	for(i=0;i<gpxStruct.orig.gpx.trk.length;i++)
+	{
+		var trk = gpxStruct.orig.gpx.trk[i];
+		var n;
+		var fTimeRemoved = 0;
+		var fRPDist = 0;
+		var removeLocations = [];
+
+		var newtrk = [];
+		var newpts = [];
+		var newseg = [];
+
+		//Main loop removing stops
+		for(n=0;n<trk.trkseg.length;n++)
+		{
+			var newRemoveLocations = [];
+			var trkseg = trk.trkseg[n];
+			var j;
+			var bCurrentlyStopped = false;
+
+			var newpts = removeStops(trk.trkseg[n].trkpt, newRemoveLocations);
+
+			newseg.push({trkpt: newpts});
+			removeLocations.push(newRemoveLocations);
+		}
+
+
+		newtrk.push({trkseg: newseg});
+
+		gpxStruct.racePace.gpx.trk = newtrk;
+
+		//Calculate moving time
+		gpxStruct.details.movingTime = gpx_calcElapsedTime(gpxStruct.racePace.gpx.trk);
+
+		for(n=0;n<trk.trkseg.length;n++)
+		{
+			smoothenStops(newtrk[i].trkseg[n].trkpt, removeLocations[n]);	
+
+			perserveGPXData(trk.trkseg[n].trkpt, newtrk[i].trkseg[n].trkpt);
+		}
+
+		//Calculate race pace time
+		gpxStruct.details.racePaceTime = gpx_calcElapsedTime(gpxStruct.racePace.gpx.trk);
+	}
 }
