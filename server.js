@@ -26,14 +26,22 @@ app.use(
 	})
 );
 
-for(var urlName in urls.gets)
+for(var urlName in urls.uses)
 {
-	app.get(urls.gets[urlName].url, urls.gets[urlName].func);
+	if(urls.uses[urlName].url)
+	{
+		app.use(urls.uses[urlName].url, urls.uses[urlName].func);	
+	}
+	else
+	{
+		app.use(urls.uses[urlName].func);
+	}
+	
 }
 
-for(urlName in urls.uses)
+for(urlName in urls.gets)
 {
-	app.use(urls.uses[urlName].url, urls.uses[urlName].func);
+	app.get(urls.gets[urlName].url, urls.gets[urlName].func);
 }
 
 for(urlName in urls.posts)
@@ -41,7 +49,7 @@ for(urlName in urls.posts)
 	app.post(urls.posts[urlName].url, urls.posts[urlName].func);
 }
 
-app.use(errorReport);
+//app.use(errorReport);
 
 var server = app.listen(app.get('port'), function() {
 	var host = server.address().address;

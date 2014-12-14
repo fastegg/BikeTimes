@@ -29,8 +29,6 @@ function postGPX(req, res)
 {
 	var curSession = sessions[req.session.id];
 
-	console.log('Looking for session: ' + req.session.id);
-
 	if(curSession !== undefined && curSession.GPX !== undefined)
 	{
 		res.redirect('/viewGPX');
@@ -62,7 +60,6 @@ function useSessionGPX(req, res, next)
 
 	if(req.session.id)
 	{
-		console.log('I think my session is: ' + req.session.id);
 		curSession = sessions[req.session.id];
 	}
 
@@ -75,8 +72,6 @@ function useSessionGPX(req, res, next)
 		sessions[curSession.id] = curSession;
 
 		req.session.id = curSession.id;
-
-		console.log('Creating new session: ' + curSession.id);
 	}
 
 	req.gpxSession = curSession;

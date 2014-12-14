@@ -21,32 +21,32 @@ module.exports.gets = {
 	exampleHTML: {
 		url: '/example',
 		func: function(req, res) {
-			res.writeHead(200, {"Content-Type": "text/html"});
-			res.end(fillStencil('example', req, res));
+			//res.writeHead(200, {"Content-Type": "text/html"});
+			res.send(fillStencil('example', req, res));
 		}
 	},
 
 	home: {
 		url: '/',
 		func: function(req, res) {
-			res.writeHead(200, {"Content-Type": "text/html"});
-			res.end(fillStencil('home', req, res));
+			//res.writeHead(200, {"Content-Type": "text/html"});
+			res.send(fillStencil('home', req, res));
 		}
 	},
 
 	about: {
 		url: '/about',
 		func: function(req, res) {
-			res.writeHead(200, {"Content-Type": "text/html"});
-			res.end(fillStencil('about', req, res));
+			//res.writeHead(200, {"Content-Type": "text/html"});
+			res.send(fillStencil('about', req, res));
 		}
 	},
 
 	contact: {
 		url: '/contact',
 		func: function(req, res) {
-			res.writeHead(200, {"Content-Type": "text/html"});
-			res.end(fillStencil('contact', req, res));
+			//res.writeHead(200, {"Content-Type": "text/html"});
+			res.send(fillStencil('contact', req, res));
 		}
 	},
 
@@ -76,21 +76,22 @@ module.exports.gets = {
             res.writeHead(200);
 			res.end(pages.getPage(req.url.slice(1)));
 		}
-	},
-
+	}
+/*
 	error404: {
 		url: '*',
 		func: function(req, res) {
-			res.writeHead(404, {"Content-Type": "text/html"});
-	  		res.write("404, Request not found");
-	  		res.end();
+			//res.writeHead(404, {"Content-Type": "text/html"});
+	  		//res.write("404, Request not found");
+	  		//res.send();
 		}
 	}
+	*/
 };
 
 module.exports.uses = {
 	session: {
-		url: '*',
+		url: undefined, //All pages
 		func: sessionGPX.useSession
 	},
 
