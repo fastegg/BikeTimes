@@ -1,6 +1,7 @@
 var xml2js = require('xml2js');
 var pages = require('./cachePages.js');
 var racePace = require('./racePace.js');
+var stencil = require('./lib/stencil.js');
 
 module.exports = {};
 module.exports.use = useGPX;
@@ -143,7 +144,7 @@ function viewGPX(req, res)
 	{
 		var jsonString = JSON.stringify(curSession.GPX);
 
-		res.send(pages.getPage('viewGPX.html'));
+		res.send(stencil.fillStencilWithReq('viewGPX', req));
 	}
 	else
 	{

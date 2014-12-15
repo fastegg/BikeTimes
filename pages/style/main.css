@@ -4,9 +4,14 @@ html {
 }
 
 body {
-  padding-top: 50px;
+  padding-top: 100px;
   /* Margin bottom by footer height */
   margin-bottom: 60px;
+}
+
+.subnavbar {
+	top: 50px;
+	z-index: 1;
 }
 
 .container-padding {

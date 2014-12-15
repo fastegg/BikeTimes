@@ -12,7 +12,8 @@ app.set('trust proxy', 1); // trust first proxy
 //express cookie Session
 app.use(session({
 	name: 'racepacesession',
-	secret: 'wordSecret1forRacePace'
+	secret: 'wordSecret1forRacePace',
+	overwrite: true
 }));
 
 //Busboy
@@ -49,11 +50,11 @@ for(urlName in urls.posts)
 	app.post(urls.posts[urlName].url, urls.posts[urlName].func);
 }
 
-//app.use(errorReport);
+app.use(errorReport.setup({}));
 
 var server = app.listen(app.get('port'), function() {
 	var host = server.address().address;
 	var port = server.address().port;
 
-	//console.log("Race Pace listening at http://%s:%s", host, app.get('port'));
+	console.log("Race Pace listening at http://%s:%s", host, app.get('port'));
 });

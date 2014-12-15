@@ -1,17 +1,9 @@
 var pages = require('./cachePages.js');
 var sessionGPX = require('./sessionGPX.js');
 var stencil = require('./lib/stencil.js');
+var error = require('./lib/errorReport.js');
 
 stencil.loadStencils(process.cwd() + '/stencils/');
-
-function fillStencil(stencilName, req, res)
-{
-	var rootObj = {};
-
-	rootObj.req = req;
-
-	return stencil.fillStencil(stencilName, rootObj);
-}
 
 String.prototype.checkExt = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
@@ -22,7 +14,7 @@ module.exports.gets = {
 		url: '/example',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(fillStencil('example', req, res));
+			res.send(stencil.fillStencilWithReq('example', req));
 		}
 	},
 
@@ -30,7 +22,7 @@ module.exports.gets = {
 		url: '/',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(fillStencil('home', req, res));
+			res.send(stencil.fillStencilWithReq('home', req));
 		}
 	},
 
@@ -38,7 +30,7 @@ module.exports.gets = {
 		url: '/about',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(fillStencil('about', req, res));
+			res.send(stencil.fillStencilWithReq('about', req));
 		}
 	},
 
@@ -46,7 +38,7 @@ module.exports.gets = {
 		url: '/contact',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(fillStencil('contact', req, res));
+			res.send(stencil.fillStencilWithReq('contact', req));
 		}
 	},
 
@@ -69,24 +61,23 @@ module.exports.gets = {
 		url: ['/code/*.js', '/style/*.css'],
 		func: function(req, res) {
 			if(req.url.checkExt('.js'))
-				res.setHeader("Content-Type", "application/javascript");
+				res.writeHead(200, {"Content-Type": "application/javascript"});
 			else
-				res.setHeader("Content-Type", "text/css");
+				res.writeHead(200, {"Content-Type": "text/css"});
 
-            res.writeHead(200);
 			res.end(pages.getPage(req.url.slice(1)));
 		}
-	}
-/*
+	},
+
 	error404: {
 		url: '*',
 		func: function(req, res) {
-			//res.writeHead(404, {"Content-Type": "text/html"});
-	  		//res.write("404, Request not found");
-	  		//res.send();
+			error.logWarning('404 detected', req, res);
+			res.writeHead(404, {"Content-Type": "text/html"});
+	  		res.write("404, Request not found");
+	  		res.send();
 		}
 	}
-	*/
 };
 
 module.exports.uses = {
