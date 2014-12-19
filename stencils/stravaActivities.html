@@ -1,0 +1,49 @@
+<html>
+<head>
+	<span data-stencil='head'></span>
+</head>
+<body>
+	<span data-stencil='navbar'></span>
+	
+	<div class="container">
+		Here are all your strava activities! Pick one!
+		<div class="panel panel-default">
+		  <!-- Default panel contents -->
+		  <div class="panel-body">
+		    <p>Select an activity from the list below: </p>
+		  </div>
+
+		  <!-- Table -->
+		  <span data-if="{req.strava.activities.length} == 0">
+		  	No Activites found!
+		  </span>
+		  <span data-if="{req.strava.activities.length} > 0">
+			  <table class="table">
+			  	<tr>
+				  	<th></th> <!-- Map preview -->
+				    <th>Type</th>
+				    <th>Date</th>
+				    <th>Title</th>
+				    <th>Distance</th>
+				    <th>Elevation</th>
+				    <th></th> <!-- Race Pace button -->
+				</tr>
+		    	<tr data-path="req.strava.activities">
+		    		<td></td> <!-- Map preview -->
+		    		<td data-path=".type"></td>
+		    		<td data-path=".start_date"></td>
+		    		<td data-if=".title" data-path=".title"></td>
+		    		<td data-if="!{.title}"><span data-path=".location_city">San Jose</span>, <span data-path=".location_state"></span></td>
+		    		<td data-path=".distance"></td>
+		    		<td data-path=".total_elevation_gain"></td>
+		    		<td><a type="button" class="btn btn-default" data-set-href="/stream?id={.id}">Calculate Race Pace</a></td>
+		    	</tr>
+			  </table>
+			</span>
+		</div>
+	</div>
+	
+	<span data-stencil='footer'></span>
+	<span data-stencil='last'></span>
+</body>
+</html>

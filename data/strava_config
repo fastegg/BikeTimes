@@ -1,0 +1,7 @@
+
+{ 
+    "access_token"    :"f95d1bef1025c12058d8e8ddc21d2c2022a23b87"
+    , "client_id"     :"3860"
+    , "client_secret" :"37bc4e8f3041bb662c5553025ab69e31d1b87597"
+    , "redirect_uri"  :"https://racepace.herokuapp.com/token_exchange"
+}

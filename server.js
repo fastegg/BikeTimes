@@ -50,7 +50,7 @@ for(urlName in urls.posts)
 	app.post(urls.posts[urlName].url, urls.posts[urlName].func);
 }
 
-app.use(errorReport.setup({}));
+//app.use(errorReport.setup({}));
 
 var server = app.listen(app.get('port'), function() {
 	var host = server.address().address;

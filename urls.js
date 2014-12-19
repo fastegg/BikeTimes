@@ -2,6 +2,7 @@ var pages = require('./cachePages.js');
 var sessionGPX = require('./sessionGPX.js');
 var stencil = require('./lib/stencil.js');
 var error = require('./lib/errorReport.js');
+var strava = require('./lib/strava');
 
 stencil.loadStencils(process.cwd() + '/stencils/');
 
@@ -40,6 +41,21 @@ module.exports.gets = {
 			//res.writeHead(200, {"Content-Type": "text/html"});
 			res.send(stencil.fillStencilWithReq('contact', req));
 		}
+	},
+
+	strava: {
+		url: '/strava',
+		func: strava.getLists
+	},
+
+	strem: {
+		url: '/stream',
+		func: strava.loadStream
+	},
+
+	stravaToken: {
+		url: '/token_exchange',
+		func: strava.authGet
 	},
 
 	viewGPX: {
@@ -89,6 +105,11 @@ module.exports.uses = {
 	gpx: {
 		url: '/uploadGPX',
 		func: sessionGPX.use
+	},
+
+	strava: {
+		url: undefined,
+		func: strava.use
 	}
 }
 
