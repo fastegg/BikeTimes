@@ -14,10 +14,10 @@
 		  </div>
 
 		  <!-- Table -->
-		  <span data-if="{req.strava.activities.length} == 0">
+		  <span data-if="{req.sessionData.strava.activities.length} == 0">
 		  	No Activites found!
 		  </span>
-		  <span data-if="{req.strava.activities.length} > 0">
+		  <span data-if="{req.sessionData.strava.activities.length} > 0">
 			  <table class="table">
 			  	<tr>
 				  	<th></th> <!-- Map preview -->
@@ -28,7 +28,7 @@
 				    <th>Elevation</th>
 				    <th></th> <!-- Race Pace button -->
 				</tr>
-		    	<tr data-path="req.strava.activities">
+		    	<tr data-path="req.sessionData.activities">
 		    		<td></td> <!-- Map preview -->
 		    		<td data-path=".type"></td>
 		    		<td data-path=".start_date"></td>

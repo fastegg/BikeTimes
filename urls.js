@@ -85,8 +85,9 @@ module.exports.gets = {
 		}
 	},
 
+	//MUST BE LAST!!!!!
 	error404: {
-		url: '*',
+		url: '*', //This should catch any pages that havne't been caught yet. 
 		func: function(req, res) {
 			error.logWarning('404 detected', req, res);
 			res.writeHead(404, {"Content-Type": "text/html"});
@@ -94,6 +95,8 @@ module.exports.gets = {
 	  		res.send();
 		}
 	}
+
+	//DON"T ADD ANY MORE HERE!!! 404 ERROR MUST BE LAST
 };
 
 module.exports.uses = {
@@ -108,8 +111,18 @@ module.exports.uses = {
 	},
 
 	strava: {
-		url: undefined,
+		url: undefined, //All pages
 		func: strava.use
+	},
+
+	printError: {
+		url: undefined, //All pages
+		func: error.addErrors 
+	},
+
+	stencil: {
+		url: undefined, //All pages
+		func: stencil.setReqAndRes
 	}
 }
 

@@ -4,6 +4,7 @@ var urls = require('./urls.js');
 var bb = require('connect-busboy');
 var session = require('cookie-session');
 var errorReport = require('./lib/errorReport.js');
+var sessionData = require('./lib/sessionData.js');
 
 app.set('port', (process.env.PORT || 3000))
 
@@ -15,6 +16,8 @@ app.use(session({
 	secret: 'wordSecret1forRacePace',
 	overwrite: true
 }));
+
+app.use(sessionData({}));
 
 //Busboy
 app.use(
@@ -50,7 +53,7 @@ for(urlName in urls.posts)
 	app.post(urls.posts[urlName].url, urls.posts[urlName].func);
 }
 
-//app.use(errorReport.setup({}));
+app.use(errorReport.setup({}));
 
 var server = app.listen(app.get('port'), function() {
 	var host = server.address().address;
