@@ -2,6 +2,7 @@ var xml2js = require('xml2js');
 var pages = require('./cachePages.js');
 var racePace = require('./racePace.js');
 var stencil = require('./lib/stencil.js');
+var sessionData = require('./lib/sessionData.js');
 
 module.exports = {};
 module.exports.use = useGPX;
@@ -10,17 +11,17 @@ module.exports.post = postGPX;
 module.exports.get = getGPX;
 module.exports.getJS = getGPXJS;
 
-module.exports.useSession = useSessionGPX;
+//module.exports.useSession = useSessionGPX;
 
 function getGPXJS(req, res)
 {
-	var curSession = sessions[req.session.id];
+	var sessionData = req.sessionData;
 
-	if(curSession.GPX !== undefined)
+	if(sessionData.racePace !== undefined)
 	{
 		var viewGPXJS = pages.getPage('custom/viewGPX.js');
 
-		viewGPXJS = viewGPXJS.replace('//GPXDATAREPLACE//','gpxData = ' + JSON.stringify(curSession.GPX) + ';');
+		viewGPXJS = viewGPXJS.replace('//GPXDATAREPLACE//','gpxData = ' + JSON.stringify(sessionData.racePace) + ';');
 
 		res.send(viewGPXJS);
 	}
@@ -28,9 +29,9 @@ function getGPXJS(req, res)
 
 function postGPX(req, res)
 {
-	var curSession = sessions[req.session.id];
+	var sessionData = req.sessionData;
 
-	if(curSession !== undefined && curSession.GPX !== undefined)
+	if(sessionData !== undefined && sessionData.racePace !== undefined)
 	{
 		res.redirect('/viewGPX');
 	}
@@ -42,7 +43,7 @@ function postGPX(req, res)
 
 function getGPX(req, res)
 {
-	if(req.session.GPX !== undefined)
+	if(req.sessionData.racePace !== undefined)
 	{
 		res.redirect('/viewGPX');
 	}
@@ -55,14 +56,10 @@ function getGPX(req, res)
 var sessions = {};
 var iMaxID = 0;
 
+/*
 function useSessionGPX(req, res, next)
 {
-	var curSession;
-
-	if(req.session.id)
-	{
-		curSession = sessions[req.session.id];
-	}
+	var curSession = sessions[req.session.id];
 
 	if(curSession === undefined)
 	{
@@ -79,6 +76,7 @@ function useSessionGPX(req, res, next)
 
 	next();
 }
+*/
 
 function useGPX(req, res, next)
 {
@@ -98,21 +96,22 @@ function useGPX(req, res, next)
 			var parser = new xml2js.Parser();
 
 			xml2js.parseString(fileContents, function (e, r) {
-				var curSession = sessions[req.session.id];
+				var sessionData = req.sessionData;
   				GPXObj = r;
 
 				if(GPXObj === undefined)
 		        {
 		        	//Return an error!
-		        	curSession.GPX = undefined;
+		        	sessionData.GPX = undefined;
 		        }
 		        else
 		        {
 		        	var uploads = req.session.uploads || 0;
-		        	curSession.uploads = ++uploads;
-		        	curSession.GPX = {};
-		        	curSession.GPX.orig = GPXObj;
-		        	racePace.calcRacePace(curSession.GPX);
+		        	//curSession.uploads = ++uploads;
+		        	sessionData.GPX = {};
+		        	sessionData.GPX = GPXObj;
+
+		        	sessionData.racePace = racePace.setFromGPX(GPXObj);
 		        }
 			});
 			
@@ -138,12 +137,10 @@ function useGPX(req, res, next)
 
 function viewGPX(req, res)
 {
-	var curSession = sessions[req.session.id];
+	var sessionData = req.sessionData;
 	
-	if(curSession !== undefined && curSession.GPX !== undefined)
+	if(sessionData !== undefined && sessionData.GPX !== undefined)
 	{
-		var jsonString = JSON.stringify(curSession.GPX);
-
 		res.send(stencil.fillStencilWithReq('viewGPX', req));
 	}
 	else

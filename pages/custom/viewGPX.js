@@ -16,19 +16,18 @@ function mapPanToBounds(map, GPXbounds)
 	map.panToBounds(g_bounds);
 }
 
-function mapPoints(map, trk)
+function mapPoints(map, data)
 {
 	var i,n;
 	var cords = [];
+	var bounds = new google.maps.LatLngBounds();
 
-	for(i=0;i<trk.trkseg.length;i++)
+	for(i=0;i<data.length;i++)
 	{
-		for(n=0;n<trk.trkseg[i].trkpt.length;n++)
-		{
-			var point = trk.trkseg[i].trkpt[n];
-
-			cords.push(new google.maps.LatLng(point.$.lat, point.$.lon));
-		}
+		var newPoint = new google.maps.LatLng(data[i][0], data[i][1]);
+		
+		cords.push(newPoint);
+		bounds.extend(newPoint);
 	}
 
 	var flightPath = new google.maps.Polyline({
@@ -40,6 +39,9 @@ function mapPoints(map, trk)
     });
 
     flightPath.setMap(map);
+
+    map.fitBounds(bounds);
+    map.panToBounds(bounds);
 }
 
 function initMap() {
@@ -52,17 +54,14 @@ function initMap() {
     }
 	map = new google.maps.Map(mapCanvas, mapOptions);
 
-	mapPoints(map,gpxData.orig.gpx.trk[0]);
-	mapPanToBounds(map, gpxData.orig.gpx.metadata[0].bounds[0].$);
-
-	initGraph();
+	mapPoints(map,gpxData.orig.streams.latlng.data);
 }
 
 function lerp(a, b, p) {
 	return a + p * (b - a);
 }
 
-function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, trk, trk_rp)
+function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, racepace)
 {
 	var data_ele = new google.visualization.DataTable();
 	var data_spd = new google.visualization.DataTable();
@@ -76,30 +75,60 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, trk, tr
 
     var i = 0;
     var n = 0;
-    var j = 0;
-    var m = 0;
 
-    
-	
-    /* FOR TESTING PURPOSE ONLY!!!
+    var origLength = orig.streams.distance.data.length;
+    var rpLength = racepace.streams.distance.data.length;
 
-    for(i=0;i<trk_rp.trkseg.length;i++)
+    while(i < origLength || n < rpLength)
     {
-    	for(n=0;n<trk_rp.trkseg[i].trkpt.length;n++)
+    	var dist;
+    	var kph = undefined;
+    	var kph_rp = undefined;
+
+    	if(i < origLength && (n >= rpLength || orig.streams.distance.data[i] < racepace.streams.distance.data[n]))
     	{
-    		trk_rp.trkseg[i].trkpt[n].dist += 10;
+    		if(n < rpLength)
+    		{
+    			var percentage = (orig.streams.distance.data[i] - racepace.streams.distance.data[n-1]) / (racepace.streams.distance.data[n] - racepace.streams.distance.data[n-1]);
+	   			kph_rp = lerp(racepace.streams.velocity.data[n-1], racepace.streams.velocity.data[n], percentage);
+
+	   			if(percentage < 0 || percentage > 1)
+    				console.log("Out of range!!! i: " + i + 'n: ' + n);
+    		}
+
+    		dist = orig.streams.distance.data[i];
+    		kph = orig.streams.velocity.data[i];
+    		i++;
     	}
+    	else if(n < rpLength && (i >= origLength || orig.streams.distance.data[i] > racepace.streams.distance.data[n]))
+    	{
+    		if(i < origLength)
+    		{
+    			var percentage = (racepace.streams.distance.data[n] - orig.streams.distance.data[i-1]) / (orig.streams.distance.data[i] - orig.streams.distance.data[i-1]);
+    			kph = lerp(orig.streams.velocity.data[i-1], orig.streams.velocity.data[i], percentage);
+
+    			if(percentage < 0 || percentage > 1)
+    				console.log("Out of range!!! i: " + i + 'n: ' + n);
+    		}
+
+    		dist = racepace.streams.distance.data[n];
+    		kph_rp = racepace.streams.velocity.data[n];
+    		n++;
+    	}
+    	else
+    	{
+    		dist = orig.streams.distance.data[i];
+    		kph = orig.streams.velocity.data[i];
+    		kph_rp = racepace.streams.velocity.data[n];
+
+    		i++;
+    		n++;
+    	}
+
+    	data_spd.addRow([dist, kph, kph_rp]);
     }
 
-    i=0;
-    n=0;
-	
-	
-    //FINISH TEST!!!
-	*/
-
-	console.log('Length of trk: ' + trk.trkseg.length);
-	console.log('Length of trkRP: ' + trk_rp.trkseg.length);
+/*
 	while((i < trk.trkseg.length && n < trk.trkseg[i].trkpt.length) || (j < trk_rp.trkseg.length && m < trk_rp.trkseg[j].trkpt.length))
 	{
 		var dist;
@@ -163,46 +192,48 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, trk, tr
     		m=0
     	}
 	}
-
+*/
 	//Map evevation basied on old information
-    for(i=0;i<trk.trkseg.length;i++)
-    {
-    	for(n=0;n<trk.trkseg[i].trkpt.length;n++)
-    	{
-    		var ele = parseFloat(trk.trkseg[i].trkpt[n].ele[0]);
+	if(orig.streams.altitude)
+	{
+		for(i=0;i<orig.streams.altitude.data.length;i++)
+		{
+			var ele = parseFloat(orig.streams.altitude.data[i]);
 
-    		//Assume 0 means something went wrong. Use last elevation
-    		if(ele === 0.0)
-    		{
-    			var eleN = n-1;
-    			while(eleN > 0)
-    			{
-    				ele = parseFloat(trk.trkseg[i].trkpt[eleN].ele[0]);
+			//Assume 0 means something went wrong. Use last elevation
+			if(ele === 0.0)
+			{
+				var n = i;
 
-    				if(ele !== 0.0)
-    					break;
+				while(n > 0)
+				{
+					ele = parseFloat(orig.streams.altitude.data[n]);
 
-    				eleN -= 1;
-    			}
+					if(ele !== 0.0)
+						break;
 
-    			//If last elevation can't be found, use next elevation
-    			if(ele === 0.0)
-    			{
-    				while (eleN < 0)
-    				{
-    					ele = parseFloat(trk.trkseg[i].trkpt[eleN].ele[0]);
+					n--;
+				}
 
-    					if(ele !== 0.0)
-    						break;
+				if(ele === 0.0)
+				{
+					n = i;
 
-    					eleN += 1;
-    				}
-    			}
-    		}
+					while(n < orig.streams.altitude.data.length - 1)
+					{
+						ele = parseFloat(orig.streams.altitude.data[n])
 
-    		data_ele.addRow([trk.trkseg[i].trkpt[n].dist, ele]);
-    	}
-    }
+						if(ele !== 0.0)
+							break;
+
+						n++;
+					}
+				}
+			}
+
+			data_ele.addRow([orig.streams.distance.data[i], ele]);
+		}
+	}
 
 	chart_ele.draw(data_ele, options_ele);
 	chart_spd.draw(data_spd, options_spd);
@@ -215,7 +246,7 @@ function initGraph() {
 	var options_ele = {};
 	var options_spd = {};
 
-	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig.gpx.trk[0], gpxData.racePace.gpx.trk[0]);
+	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace);
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);

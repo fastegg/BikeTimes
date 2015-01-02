@@ -100,10 +100,12 @@ module.exports.gets = {
 };
 
 module.exports.uses = {
+	/*
 	session: {
 		url: undefined, //All pages
 		func: sessionGPX.useSession
 	},
+	*/
 
 	gpx: {
 		url: '/uploadGPX',

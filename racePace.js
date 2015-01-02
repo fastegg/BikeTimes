@@ -1,8 +1,11 @@
 var deepcopy = require('./lib/deepcopy.js');
+var gpx2segs = require('./lib/gpx2segs.js')
 
 module.exports = {};
 
 module.exports.calcRacePace = calcRacePace;
+module.exports.setFromGPX = setFromGPX;
+module.exports.setFromStrava = setFromStrava;
 
 /////////////////////////////////////////////
 //
@@ -36,10 +39,10 @@ function toRadians(deg)
 function GPXDistToKM(v1, v2)
 {
 	var R = 6371; // km
-	var o1 = toRadians(v1.$.lat)
-	var o2 = toRadians(v2.$.lat);
-	var ao = toRadians(v2.$.lat-v1.$.lat);
-	var ah = toRadians(v2.$.lon-v1.$.lon);
+	var o1 = toRadians(v1[0])
+	var o2 = toRadians(v2[0]);
+	var ao = toRadians(v2[0]-v1[0]);
+	var ah = toRadians(v2[1]-v1[1]);
 
 	var a = Math.sin(ao/2) * Math.sin(ao/2) +
 	        Math.cos(o1) * Math.cos(o2) *
@@ -58,19 +61,6 @@ function KPH(km, seconds)
 	return km*d;
 }
 
-function gpx_calcElapsedTime(trk)
-{
-	var trks;
-	var trksegs;
-	var trkpts;
-
-	trks = trk.length-1;
-	trksegs = trk[trks].trkseg.length-1;
-	trkpts = trk[trks].trkseg[trksegs].trkpt.length-1;
-
-	return GPXTimeToDate(trk[trks].trkseg[trksegs].trkpt[trkpts].time[0]).getTime() - GPXTimeToDate(trk[0].trkseg[0].trkpt[0].time[0]).getTime();
-}
-
 function lerp(a, b, p) {
 	return a + p * (b - a);
 }
@@ -81,187 +71,194 @@ function lerp(a, b, p) {
 //
 /////////////////////////////////////////////
 
-function removeStops(origpts, removeLocations)
+function removeStops(activity, removeLocations)
 {
-	var newpts = [];
+	var streams = activity.streams;
 	var i;
 	var fTimeRemoved = 0;
 	var bCurrentlyStopped = false;
-	var fRPDist = 0;
+	var fTimeRemoving = 0;
+	var iRemoved = 0;
 
-	for(i=0;i<origpts.length;i++)
+	for(i=0;i<activity.streams.distance.data.length;i++)
 	{
-		var lastpt;
-		var curpt;
-		var newpt;
-
 		if(i===0)
 		{
-			curpt = origpts[i];
-
-			curpt.dist = 0;
-			curpt.kph = 0;
-
-			newpt = deepcopy(curpt);
-
-			newpts.push(newpt);
-			
 			continue;
 		}
-		else
-		{
-			curpt = origpts[i];
-			lastpt = origpts[i-1];
-		}
-
-		newpt = deepcopy(curpt);
 
 		if(fTimeRemoved > 0)
 		{
-			var prevTime = GPXTimeToDate(newpt.time[0]);
-			newpt.time[0] = DateToGPXTime(new Date(GPXTimeToDate(newpt.time[0]).getTime() - fTimeRemoved));
+			activity.streams.time.data[i] -= fTimeRemoved;
 		}
 
-		var fDist = GPXDistToKM(curpt, lastpt);
-		var fTimeBetween = (new Date(GPXTimeToDate(curpt.time[0]))).getTime() - (new Date(GPXTimeToDate(lastpt.time[0]))).getTime();
-		var fKPH = KPH(fDist, fTimeBetween / 1000);
+		var fDist = activity.streams.distance.data[i] - activity.streams.distance.data[i-1];
+		var fTimeBetween = activity.streams.time.data[i] - activity.streams.time.data[i-1]
+		var fKPH = activity.streams.velocity.data[i];
 
-		//Save these to the orig data
-		curpt.dist = lastpt.dist + fDist;
-		curpt.kph = fKPH;
-
-		if(fKPH < 3	|| bCurrentlyStopped === true && fKPH < 5)
+		if(fKPH < 3	|| (bCurrentlyStopped === true && fKPH < 5))
 		{
 			if(bCurrentlyStopped === false)
 			{
 				bCurrentlyStopped = true;
-				removeLocations.push(newpts.length);
+				removeLocations.push({loc: i, timeRemoved: 0, distance: activity.streams.distance.data[i]});
 			}
 
-			fTimeRemoved += fTimeBetween;
+			fTimeRemoving += fTimeBetween;
 		}
 		else
 		{
-			if(bCurrentlyStopped === true)
-				bCurrentlyStopped = false;
-			
-			fRPDist += fDist;
-			newpt.dist = fRPDist;
-			newpt.kph = fKPH;
+			if(bCurrentlyStopped)
+			{
+				var iRemoveSpots = i - removeLocations[removeLocations.length-1].loc;
 
-			newpts.push(newpt);
+				console.log('Removing ' + iRemoveSpots + ' from ' + i);
+
+				for(var seg in activity.streams)
+				{
+					activity.streams[seg].data.splice(removeLocations[removeLocations.length-1].loc, iRemoveSpots);
+				}
+				
+				iRemoved += iRemoveSpots - 1;
+
+				i = i - iRemoveSpots - 1;
+				bCurrentlyStopped = false;
+
+				removeLocations[removeLocations.length-1].timeRemoved = fTimeRemoving;
+
+				fTimeRemoved += fTimeRemoving;
+				fTimeRemoving = 0;
+			}
 		}
 	}
-
-	return newpts;
 }
 
-function smoothenStops(trkpts, removeLocations)
+function smoothenStops(activity, removeLocations)
 {
 	var i;
+	var newLastPoint = undefined;
 
-	var newLastPoint;
+	console.log('Remove locs', removeLocations);
 
 	for(i=removeLocations.length-1;i>=0;i--)
 	{
-		var pos = removeLocations[i];
+		var pos = removeLocations[i].loc;
 
 		var start = pos;
 		var end = pos;
 
 		var fTimeRemoved = 0;
 
+		console.log('Smoothing stop: ' + pos);
+
 		while(start > 0)
 		{
-				//Remove first
-				start--;
-				
-				//Check to see if the start is more than 15 seconds from pos
-				if(GPXTimeToDate(trkpts[pos].time[0]).getTime() - GPXTimeToDate(trkpts[start].time[0]).getTime() > 15000)
-				{
-					break;
-				}
+			//Remove first
+			start--;
 
-				//Check to see if the kph has dropped
-				if(trkpts[start].kph < trkpts[start+1].kph)
-				{
-					start++;
-					break;
-				}
-
-				//Check to see if the kph is within 10% of the last kph
-				if(trkpts[start].kph / trkpts[start+1].kph < 1.10)
-				{
-					break;
-				}
-		}
-
-		while(end < trkpts.length-1)
-		{
-			//Remove first, to make sure we don't just check n
-			end++;
-
-			//Check to see if the start is more than 15 seconds from n
-			if(GPXTimeToDate(trkpts[end].time[0]).getTime() - GPXTimeToDate(trkpts[pos].time[0]).getTime() > 15000)
+			//Check to see if the start is more than 15 seconds from pos
+			if(activity.streams.time.data[pos] - activity.streams.time.data[start] > 15)
 			{
+				console.log('Start time');
 				break;
 			}
 
 			//Check to see if the kph has dropped
-			if(trkpts[end].kph < trkpts[end-1].kph)
+			if(start > end + 1 && activity.streams.velocity.data[start] < activity.streams.velocity.data[start+1])
 			{
+				console.log('Start dropped');
+				console.log(activity.streams.velocity.data[start]);
+				start++;
+				break;
+			}
+
+			//Check to see if the kph is within 10% of the last kph
+			if(activity.streams.velocity.data[start] / activity.streams.velocity.data[start+1] < 1.10)
+			{
+				console.log('Start 10%');
+				break;
+			}
+		}
+
+		while (end < activity.streams.velocity.data.length)
+		{
+			end++;
+
+			//Check to see if the end is more than 15 seconds from pos
+			if(activity.streams.time.data[end] - activity.streams.time.data[pos] > 15)
+			{
+				console.log('end time');
+				break;
+			}
+
+			//Check to see if the kph has dropped
+			if(activity.streams.velocity.data[end] < activity.streams.velocity.data[end-1])
+			{
+				console.log('end dropped');
 				end--;
 				break;
 			}
 
 			//Check to see if the kph is within 10% of the last kph
-			if( trkpts[end].kph / trkpts[end-1].kph < 1.10)
+			if(activity.streams.velocity.data[end] / activity.streams.velocity.data[end-1] < 1.10)
 			{
+				console.log('end 10%');
 				break;
 			}
 		}
 
-		var fTotalDist = trkpts[end].dist - trkpts[start].dist;
-		var fAvgKPH = (trkpts[start].kph + trkpts[end].kph) / 2;
-		var fTimeToTravel = (fTotalDist/fAvgKPH) * 3600 * 1000 //Time in milliseconds 
+		console.log('Start: ' + start + ' End: ' + end);
+		console.log('Distance: ' + activity.streams.distance.data[pos]);
+		console.log('Velocity: ' + activity.streams.velocity.data[pos]);
+
+		var fTotalDist = activity.streams.distance.data[end] - activity.streams.distance.data[start];
+		var fAvgKPH = (activity.streams.velocity.data[start] + activity.streams.velocity.data[end]) / 2;
+		var fTimeToTravel = (fTotalDist/fAvgKPH) * 3600 //Time in seconds 
 		var nextpt = start+1;
 
-		var fTimeStart = GPXTimeToDate(trkpts[start].time[0]).getTime();
-		var fTimeEnd = GPXTimeToDate(trkpts[end].time[0]).getTime();
-		var fTimeLost = 0;
-		var fTimeSpot = GPXTimeToDate(trkpts[nextpt].time[0]).getTime() - fTimeStart;
+		var fTimeStart = activity.streams.time.data[start];
+		var fTimeEnd = activity.streams.time.data[end];
+		var fTimeSpot = activity.streams.time.data[nextpt] - fTimeStart;
 
 		var fLeftOverDist = fTotalDist;
 		var fDistLost = fTotalDist;
 
+		removeLocations[i].timeRemoved += activity.streams.time.data[end] - activity.streams.time.data[start] - fTimeToTravel;
+
 		while(fTimeSpot < fTimeToTravel)
 		{
 			var pct = fTimeSpot / fTimeToTravel;
-			var fKPH = lerp(trkpts[start].kph, trkpts[end].kph, pct);
-			var fTimeDifference = (fTimeSpot + fTimeStart) - GPXTimeToDate(trkpts[nextpt-1].time[0]).getTime();
-			var fDistToTravel = (fKPH / 3600000) * fTimeDifference;
+			var fKPH = lerp(activity.streams.velocity.data[start], activity.streams.velocity.data[end], pct);
+			var fTimeDifference = (fTimeSpot + fTimeStart) - activity.streams.time.data[nextpt-1];
+			var fDistToTravel = (fKPH / 3600) * fTimeDifference;
 
-			trkpts[nextpt].dist = trkpts[nextpt-1].dist + fDistToTravel;
-			trkpts[nextpt].kph = fKPH;
+			activity.streams.distance.data[nextpt] = activity.streams.distance.data[nextpt-1] + fDistToTravel;
+			activity.streams.velocity.data[nextpt] = fKPH;
 
 			fLeftOverDist -= fDistToTravel;
 			fDistLost -= fDistToTravel;
 			
 			nextpt++;
-			fTimeSpot = GPXTimeToDate(trkpts[nextpt].time[0]).getTime() - fTimeStart;
+			fTimeSpot = activity.streams.time.data[nextpt] - fTimeStart;
 		}
 
-		var fLeftOverTime = fTimeToTravel - (fTimeSpot - (GPXTimeToDate(trkpts[nextpt].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt-1].time[0]).getTime()));
-		var fLeftOverDist = (trkpts[end].kph / 3600000 * fLeftOverTime);
-		var fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime / 1000);
+		var fLeftOverTime = fTimeToTravel - (fTimeSpot - (activity.streams.time.data[nextpt] - activity.streams.time.data[nextpt-1]));
+		var fLeftOverDist = (activity.streams.velocity.data[end] / 3600 * fLeftOverTime);
+		var fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime);
 		fDistLost -= fLeftOverDist;
 
 		if(nextpt <= end)
 		{
 			var ptsRemoved = end-nextpt+1;
 
-			fTimeRemoved = GPXTimeToDate(trkpts[end+1].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt].time[0]).getTime();
-			trkpts.splice(nextpt,ptsRemoved);
+			fTimeRemoved = activity.streams.time.data[end] - activity.streams.time.data[nextpt];
+
+			console.log('Removing ' + ptsRemoved);
+
+			for(var seg in activity.streams)
+			{
+				activity.streams[seg].data.splice(nextpt,ptsRemoved);
+			}
 		}
 
 		if(fLeftOverDist > 0 || fLeftOverTime > 0)
@@ -270,48 +267,54 @@ function smoothenStops(trkpts, removeLocations)
 
 			if(fTimeRemoved > 0)
 			{
-				for(iDist=nextpt;iDist<trkpts.length;iDist++)
+				for(iDist=nextpt;iDist<activity.streams.distance.length;iDist++)
 				{
 
-					trkpts[iDist].time[0] = DateToGPXTime(new Date(GPXTimeToDate(trkpts[iDist].time[0]).getTime() - fTimeRemoved));
-					trkpts[iDist].dist -= fDistLost;
+					activity.streams.time.data[iDist] = activity.streams.time.data[iDist] - fTimeRemoved;
+					activity.streams.distance.data[iDist] -= fDistLost;
 
-					var fTimeBetween = GPXTimeToDate(trkpts[iDist].time[0]).getTime() - GPXTimeToDate(trkpts[iDist-1].time[0]).getTime();
+					var fTimeBetween = activity.streams.time.data[iDist] - activity.streams.time.data[iDist-1];
 					var pct = fLeftOverTime / fTimeBetween;
-					var fTargetKPH = (fLeftOverKPH * pct + trkpts[iDist].kph * (1-pct));
-					var fOldDist = trkpts[iDist].dist - trkpts[iDist-1].dist;
-					//var fNewDist = fOldDist * (1-pct);
-					var fNewDist = (fTargetKPH / 3600000) * fTimeBetween;
+					var fTargetKPH = (fLeftOverKPH * pct + activity.streams.velocity.data[iDist] * (1-pct));
+					var fOldDist = activity.streams.distance.data[iDist] - activity.streams.distance.data[iDist-1];
+					var fNewDist = (fTargetKPH / 3600) * fTimeBetween;
 					
-
-					trkpts[iDist].dist = trkpts[iDist-1].dist + fNewDist;
+					activity.streams.distance.data[iDist] = activity.streams.distance.data[iDist-1] + fNewDist;
 
 					fLeftOverDist = fOldDist - fNewDist;
-					fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime / 1000);
+					fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime);
 
-					trkpts[iDist].kph = KPH(trkpts[iDist].dist - trkpts[iDist-1].dist, fTimeBetween / 1000);
-					//trkpts[iDist].kph = fTargetKPH;
-
-
-
+					activity.streams.velocity.data[iDist] = KPH(activity.streams.distance.data[iDist] - activity.streams.distance.data[iDist-1], fTimeBetween);
 				}
 
 				if(fLeftOverDist)
 				{
 						if(newLastPoint === undefined)
-							newLastPoint = deepcopy(trkpts[iDist-1]);
-						
-						newLastPoint.time[0] = DateToGPXTime(new Date(GPXTimeToDate(newLastPoint.time[0]).getTime() + fLeftOverTime));
-						newLastPoint.dist += fLeftOverDist;
+						{
+							newLastPoint = {
+								time: 0,
+								distance: 0,
+								velocity: 0
+							}
+						}
+
+						newLastPoint.time += fLeftOverTime;
+						newLastPoint.distance += fLeftOverDist;
+						newLastPoint.velocity = KPH(newLastPoint.distance, newLastPoint.time);
 				}
 			}
 		}
 	}
 
 	if(newLastPoint !== undefined)
-		trkpts.push(newLastPoint);
+	{
+		activity.streams.velocity.data.push(newLastPoint.velocity);
+		activity.streams.time.data.push(newLastPoint.time + activity.streams.time.data[activity.streams.time.data.length-1]);
+		activity.streams.distance.data.push(newLastPoint.distance + activity.streams.distance.data[activity.streams.distance.length-1]);
+	}
 }
 
+/*
 function perserveGPXData(oldtrk, newtrk)
 {
 	var iOld, iNew;
@@ -335,73 +338,86 @@ function perserveGPXData(oldtrk, newtrk)
 		newtrk[iNew].$.lat = lerp(oldtrk[iOld].$.lat, oldtrk[iOld+1].$.lat, pct);
 	}
 }
+*/
 
-function calcRacePace(gpxStruct)
+function calcRacePace(orig)
 {
-	var i = 0;
+	var i;
 
-	if(gpxStruct === undefined || gpxStruct.orig === undefined)
+	console.log(orig);
+	if(!orig.streams.distance && orig.streams.latlon)
 	{
-		return;
+		orig.streams.distance = {
+			type: 'distance',
+			data: [],
+			original_size: orig.streams.latlon.original_size,
+			resolution: orig.streams.latlon.resolution
+		};
+
+		for(i=0;i<orig.streams.latlon.length;i++)
+		{
+			if(i===0)
+			{
+				orig.streams.distance.data.push(0);
+			}
+			else
+			{
+				orig.streams.distance.data.push(GPXDistToKM(orig.streams.latlng.data[i-1], orig.streams.latlon.data[i]));
+			}
+		}
 	}
 
-	gpxStruct.racePace = {};
-	gpxStruct.details = {};
+	var rtn = deepcopy(orig);
+	var removeLocations = [];
 
-	gpxStruct.details.elapsedTime = gpx_calcElapsedTime(gpxStruct.orig.gpx.trk);
+	removeStops(rtn, removeLocations);
 
-	gpxStruct.details.startTime = gpxStruct.orig.gpx.trk[0].trkseg[0].trkpt[0].time[0];
-	
-	gpxStruct.details.movingTime = 0; //Calculated during first main loop
-	gpxStruct.details.racePaceTime = 0; //Calculated uring second main loop
+	rtn.moving_time = rtn.streams.time.data[rtn.streams.time.data.length-1];
+	smoothenStops(rtn, removeLocations);
+	//Set GPX data only when requested
+	rtn.removed = removeLocations;
+	rtn.timegained = 0;
 
-	gpxStruct.details.removeLocations = [];
-
-	gpxStruct.racePace = {};
-	gpxStruct.racePace.gpx = {};
-	
-	for(i=0;i<gpxStruct.orig.gpx.trk.length;i++)
+	for(i=0;i<removeLocations.length;i++)
 	{
-		var trk = gpxStruct.orig.gpx.trk[i];
-		var n;
-		var fTimeRemoved = 0;
-		var fRPDist = 0;
-		var removeLocations = [];
-
-		var newtrk = [];
-		var newpts = [];
-		var newseg = [];
-
-		//Main loop removing stops
-		for(n=0;n<trk.trkseg.length;n++)
-		{
-			var newRemoveLocations = [];
-			var trkseg = trk.trkseg[n];
-			var j;
-			var bCurrentlyStopped = false;
-
-			var newpts = removeStops(trk.trkseg[n].trkpt, newRemoveLocations);
-
-			newseg.push({trkpt: newpts});
-			removeLocations.push(newRemoveLocations);
-		}
-
-
-		newtrk.push({trkseg: newseg});
-
-		gpxStruct.racePace.gpx.trk = newtrk;
-
-		//Calculate moving time
-		gpxStruct.details.movingTime = gpx_calcElapsedTime(gpxStruct.racePace.gpx.trk);
-
-		for(n=0;n<trk.trkseg.length;n++)
-		{
-			smoothenStops(newtrk[i].trkseg[n].trkpt, removeLocations[n]);	
-
-			perserveGPXData(trk.trkseg[n].trkpt, newtrk[i].trkseg[n].trkpt);
-		}
-
-		//Calculate race pace time
-		gpxStruct.details.racePaceTime = gpx_calcElapsedTime(gpxStruct.racePace.gpx.trk);
+		rtn.timegained += removeLocations[i].timeRemoved;
 	}
+
+	rtn.racepace_time = rtn.streams.time.data[rtn.streams.time.data.length-1];
+
+	return rtn;
+}
+
+function setFromGPX(gpx)
+{
+	var rtn = {};
+
+	rtn.orig = gpx2segs.convert(gpx);
+	rtn.racePace = calcRacePace(rtn.orig);
+
+	var lastDist = 0;
+
+	console.log('Checking the calcs');
+
+	for(var i=0;i<rtn.racePace.streams.distance.data.length;i++)
+	{
+		if(lastDist > rtn.racePace.streams.distance.data[i])
+		{
+			console.log("Problem found: " + i);
+		}
+
+		lastDist = rtn.racePace.streams.distance.data[i];
+	}
+
+	return rtn;
+}
+
+function setFromStrava(strava)
+{
+	var rtn = {};
+
+	rtn.orig = strava;
+	rtn.racePace = calcRacePace(rtn.orig);
+
+	return rtn;
 }
