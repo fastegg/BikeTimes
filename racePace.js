@@ -78,7 +78,6 @@ function removeStops(activity, removeLocations)
 	var fTimeRemoved = 0;
 	var bCurrentlyStopped = false;
 	var fTimeRemoving = 0;
-	var iRemoved = 0;
 
 	for(i=0;i<activity.streams.distance.data.length;i++)
 	{
@@ -110,24 +109,29 @@ function removeStops(activity, removeLocations)
 		{
 			if(bCurrentlyStopped)
 			{
-				var iRemoveSpots = i - removeLocations[removeLocations.length-1].loc;
+				var removeID = removeLocations.length-1;
+				var iRemoveSpots = i - removeLocations[removeID].loc;
 
-				console.log('Removing ' + iRemoveSpots + ' from ' + i);
+				console.log('Removing ' + iRemoveSpots + ' from ' + removeLocations[removeID].loc);
+				console.log('Time Removing: ' + fTimeRemoving);
 
 				for(var seg in activity.streams)
 				{
-					activity.streams[seg].data.splice(removeLocations[removeLocations.length-1].loc, iRemoveSpots);
+					activity.streams[seg].data.splice(removeLocations[removeID].loc, iRemoveSpots);
 				}
-				
-				iRemoved += iRemoveSpots - 1;
 
-				i = i - iRemoveSpots - 1;
+				i = i - iRemoveSpots;
 				bCurrentlyStopped = false;
 
-				removeLocations[removeLocations.length-1].timeRemoved = fTimeRemoving;
+				removeLocations[removeID].timeRemoved = fTimeRemoving;
+
+				activity.streams.time.data[i] -= fTimeRemoving;
 
 				fTimeRemoved += fTimeRemoving;
 				fTimeRemoving = 0;
+
+				console.log('Distance at stop: ' + activity.streams.distance.data[removeLocations[removeID].loc]);
+				console.log('Speed at stop: ' + activity.streams.velocity.data[removeLocations[removeID].loc]);
 			}
 		}
 	}
@@ -150,6 +154,8 @@ function smoothenStops(activity, removeLocations)
 		var fTimeRemoved = 0;
 
 		console.log('Smoothing stop: ' + pos);
+		console.log('Distance at pos: ' + activity.streams.distance.data[pos]);
+		console.log('Speed at pos: ' + activity.streams.velocity.data[pos]);
 
 		while(start > 0)
 		{
@@ -163,8 +169,10 @@ function smoothenStops(activity, removeLocations)
 				break;
 			}
 
+			//continue;
+
 			//Check to see if the kph has dropped
-			if(start > end + 1 && activity.streams.velocity.data[start] < activity.streams.velocity.data[start+1])
+			if(start < pos - 1 && activity.streams.velocity.data[start] < activity.streams.velocity.data[start+1])
 			{
 				console.log('Start dropped');
 				console.log(activity.streams.velocity.data[start]);
@@ -173,7 +181,7 @@ function smoothenStops(activity, removeLocations)
 			}
 
 			//Check to see if the kph is within 10% of the last kph
-			if(activity.streams.velocity.data[start] / activity.streams.velocity.data[start+1] < 1.10)
+			if(start < pos - 1 && activity.streams.velocity.data[start] / activity.streams.velocity.data[start+1] < 1.10)
 			{
 				console.log('Start 10%');
 				break;
@@ -191,8 +199,10 @@ function smoothenStops(activity, removeLocations)
 				break;
 			}
 
+			//continue;
+
 			//Check to see if the kph has dropped
-			if(activity.streams.velocity.data[end] < activity.streams.velocity.data[end-1])
+			if(end > pos + 1 && activity.streams.velocity.data[end] < activity.streams.velocity.data[end-1])
 			{
 				console.log('end dropped');
 				end--;
@@ -200,14 +210,16 @@ function smoothenStops(activity, removeLocations)
 			}
 
 			//Check to see if the kph is within 10% of the last kph
-			if(activity.streams.velocity.data[end] / activity.streams.velocity.data[end-1] < 1.10)
+			if(end > pos + 1 && activity.streams.velocity.data[end] / activity.streams.velocity.data[end-1] < 1.10)
 			{
-				console.log('end 10%');
+				console.log('end 10% - ' + (activity.streams.velocity.data[end] / activity.streams.velocity.data[end-1]));
 				break;
 			}
 		}
 
 		console.log('Start: ' + start + ' End: ' + end);
+		console.log('Start Time Difference: ' + (activity.streams.time.data[pos] - activity.streams.time.data[start]));
+		console.log('End Time Difference: ' + (activity.streams.time.data[end] - activity.streams.time.data[pos]));
 		console.log('Distance: ' + activity.streams.distance.data[pos]);
 		console.log('Velocity: ' + activity.streams.velocity.data[pos]);
 
@@ -215,6 +227,10 @@ function smoothenStops(activity, removeLocations)
 		var fAvgKPH = (activity.streams.velocity.data[start] + activity.streams.velocity.data[end]) / 2;
 		var fTimeToTravel = (fTotalDist/fAvgKPH) * 3600 //Time in seconds 
 		var nextpt = start+1;
+
+		console.log('Total Dist: ' + fTotalDist);
+		console.log('Average KPH: ' + fAvgKPH);
+		console.log('Time to Travel: ' + fTimeToTravel);
 
 		var fTimeStart = activity.streams.time.data[start];
 		var fTimeEnd = activity.streams.time.data[end];
@@ -225,15 +241,20 @@ function smoothenStops(activity, removeLocations)
 
 		removeLocations[i].timeRemoved += activity.streams.time.data[end] - activity.streams.time.data[start] - fTimeToTravel;
 
-		while(fTimeSpot < fTimeToTravel)
+		while(fTimeSpot < fTimeToTravel && nextpt <= end)
 		{
 			var pct = fTimeSpot / fTimeToTravel;
 			var fKPH = lerp(activity.streams.velocity.data[start], activity.streams.velocity.data[end], pct);
 			var fTimeDifference = (fTimeSpot + fTimeStart) - activity.streams.time.data[nextpt-1];
 			var fDistToTravel = (fKPH / 3600) * fTimeDifference;
 
+			console.log('Lerp: ' + pct + ' = ' + fKPH);
+			console.log('Start: ' + activity.streams.velocity.data[start] + " End: " + activity.streams.velocity.data[end]);
+
 			activity.streams.distance.data[nextpt] = activity.streams.distance.data[nextpt-1] + fDistToTravel;
 			activity.streams.velocity.data[nextpt] = fKPH;
+
+			console.log('Setting point ' + nextpt + ': ' + activity.streams.distance.data[nextpt] + ' to ' + activity.streams.velocity.data[nextpt]);
 
 			fLeftOverDist -= fDistToTravel;
 			fDistLost -= fDistToTravel;
@@ -261,7 +282,7 @@ function smoothenStops(activity, removeLocations)
 			}
 		}
 
-		if(fLeftOverDist > 0 || fLeftOverTime > 0)
+		if(fLeftOverDist > 0 || fLeftOverTime > 0 || fTimeRemoved > 0)
 		{
 			var iDist = nextpt;
 
