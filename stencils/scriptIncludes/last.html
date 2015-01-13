@@ -8,9 +8,15 @@
 <!-- <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
 
 <span data-if="{req.errors.length} > 0" data-stencil='error'>
+</span>
 
-<script>
+<script data-if="{req.errors.length} > 0">
 $('#errorModal').modal({});
 </script>
 
+<span data-if="{req.messages} && {req.messages.length} > 0" data-stencil='stravaMessage'>
 </span>
+
+<script data-if="{req.messages.length} > 0">
+$('#stravaModal').modal({});
+</script>

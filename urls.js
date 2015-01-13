@@ -15,7 +15,7 @@ module.exports.gets = {
 		url: '/example',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(stencil.fillStencilWithReq('example', req));
+			res.end(stencil.fillStencilWithReq('example', req));
 		}
 	},
 
@@ -23,7 +23,7 @@ module.exports.gets = {
 		url: '/',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(stencil.fillStencilWithReq('home', req));
+			res.end(stencil.fillStencilWithReq('home', req));
 		}
 	},
 
@@ -31,7 +31,7 @@ module.exports.gets = {
 		url: '/about',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(stencil.fillStencilWithReq('about', req));
+			res.end(stencil.fillStencilWithReq('about', req));
 		}
 	},
 
@@ -39,7 +39,7 @@ module.exports.gets = {
 		url: '/contact',
 		func: function(req, res) {
 			//res.writeHead(200, {"Content-Type": "text/html"});
-			res.send(stencil.fillStencilWithReq('contact', req));
+			res.end(stencil.fillStencilWithReq('contact', req));
 		}
 	},
 
@@ -58,6 +58,11 @@ module.exports.gets = {
 		func: strava.authGet
 	},
 
+	stravaLogout: {
+		url: '/stravaLogout',
+		func: strava.getLogout
+	},
+
 	viewGPX: {
 		url: '/viewGPX',
 		func: sessionGPX.view
@@ -71,6 +76,27 @@ module.exports.gets = {
 	viewGPXJS: {
 		url: ['/custom/viewGPX.js'],
 		func: sessionGPX.getJS
+	},
+
+	png: {
+		url: ['*.png'],
+		func: function(req, res)
+		{
+			console.log('Requesting ' + req.url.slice(1));
+			var img = pages.getImage(req.url.slice(1));
+
+			if(img)
+			{
+				res.writeHead(200, {'Content-Type': 'image/png' });
+	     		res.end(img, 'binary');
+			}
+			else
+			{
+				res.writeHead(404, {'Content-Type': 'text/html' });
+				res.write("404, Request not found");
+				res.end();
+			}
+		}
 	},
 
 	styleAndCode: {
@@ -92,7 +118,7 @@ module.exports.gets = {
 			error.logWarning('404 detected', req, res);
 			res.writeHead(404, {"Content-Type": "text/html"});
 	  		res.write("404, Request not found");
-	  		res.send();
+	  		res.end();
 		}
 	}
 
@@ -115,6 +141,11 @@ module.exports.uses = {
 	strava: {
 		url: undefined, //All pages
 		func: strava.use
+	},
+
+	stravaMessage: {
+		url: undefined,
+		func: strava.showMessages
 	},
 
 	printError: {

@@ -1,25 +1,26 @@
 <html>
 <head>
 	<span data-stencil='head'></span>
+	<script type="text/javascript" src="/code/table.js"></script>
 </head>
 <body>
 	<span data-stencil='navbar'></span>
 	
 	<div class="container">
-		Here are all your strava activities! Pick one!
+		<h1>Strava Activities</h1>
 		<div class="panel panel-default">
 		  <!-- Default panel contents -->
 		  <div class="panel-body">
-		    <p>Select an activity from the list below: </p>
+		    <h4>Choose from the following list of activites:</h4>
 		  </div>
 
 		  <!-- Table -->
 		  <span data-if="{req.sessionData.strava.activities.length} == 0">
 		  	No Activites found!
 		  </span>
-		  <span data-if="{req.sessionData.strava.activities.length} > 0">
-			  <table class="table">
-			  	<tr>
+		  <span data-if="{req.sessionData.strava.activities.length} > 0" >
+			<table id="activities" class="table" data-path="req.sessionData.strava.activities">
+				<tr data-if="{%index}===0" class="active primary">
 				  	<th></th> <!-- Map preview -->
 				    <th>Type</th>
 				    <th>Date</th>
@@ -28,18 +29,25 @@
 				    <th>Elevation</th>
 				    <th></th> <!-- Race Pace button -->
 				</tr>
-		    	<tr data-path="req.sessionData.strava.activities">
-		    		<td></td> <!-- Map preview -->
-		    		<td data-path=".type"></td>
-		    		<td data-path=".start_date"></td>
-		    		<td data-if=".title" data-path=".title"></td>
-		    		<td data-if="!{.title}"><span data-path=".location_city">San Jose</span>, <span data-path=".location_state"></span></td>
-		    		<td data-path=".distance"></td>
-		    		<td data-path=".total_elevation_gain"></td>
-		    		<td><a type="button" class="btn btn-default" data-set-href="/stream?id={.id}">Calculate Race Pace</a></td>
-		    	</tr>
-			  </table>
-			</span>
+				<tr data-set-onmouseover="highlightRow('activities',{%index}+1)" class="activity">
+					<td></td> <!-- Map preview -->
+					<td data-path=".type"></td>
+					<td data-path=".start_date.displayDateShortWithDay()"></td>
+					<td data-if=".name" data-path=".name"></td>
+					<td data-if="!{.name}"><span data-path=".location_city">San Jose</span>, <span data-path=".location_state"></span></td>
+					<td><span data-path=".distance.MtoKM().round(1)">99</span> KM</td>
+					<td><span data-path=".total_elevation_gain.round(0)">9999</span> M</td>
+					<td width="60px"><a type="button" class="btn btn-default hideWhenUnactive hidden" data-set-href="/stream?id={.id}"><span class="glyphicon glyphicon-chevron-right"></span></a></td>
+				</tr>
+			</table>
+
+			<div class="panel-body">
+				<ul class="pager">
+			    	<li class="previous" data-if="%urlVars.page>1"><a data-set-href="/strava?page={%urlVars.page-1}"><span aria-hidden="true">&larr;</span> Newer</a></li>
+			    	<li class="next" data-if="req.sessionData.strava.activities.length === 20"><a data-set-href="/strava?page={%urlVars.page-1+2 || 2}">Older <span aria-hidden="true">&rarr;</span></a></li>
+				</ul>
+			</div>
+		  </span>
 		</div>
 	</div>
 	

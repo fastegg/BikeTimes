@@ -262,11 +262,11 @@ function smoothenStops(trkpts, removeLocations)
 		var fLeftOverKPH = KPH(fLeftOverDist, fLeftOverTime / 1000);
 		fDistLost -= fLeftOverDist;
 
-		if(nextpt <= end)
+		if(nextpt < end)
 		{
-			var ptsRemoved = end-nextpt+1;
+			var ptsRemoved = end-nextpt;
 
-			fTimeRemoved = GPXTimeToDate(trkpts[end+1].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt].time[0]).getTime();
+			fTimeRemoved = GPXTimeToDate(trkpts[end].time[0]).getTime() - GPXTimeToDate(trkpts[nextpt].time[0]).getTime();
 			trkpts.splice(nextpt,ptsRemoved);
 		}
 

@@ -15,7 +15,7 @@
   <body>
     <span data-stencil="navbar"></span>
 
-    <div class="container container-padding">
+    <div class="container container-padding" data-path="req.sessionData.racePace.racePace">
       <!-- Details -->
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -25,15 +25,17 @@
           <table class="data-table">
             <col style="width: 50%"><col style="width: 50%">
             <tr><td>
-              <p class="detail-date text-muted">1:50 PM on Friday, August 29, 2014</p>
-              <h2 class="detail-title">08/29/2014 Olympic Valley, California USA</h2>
-              <p class="detail-description">This was a fun ride around lake tahoe!</p>
+              <p class="detail-date text-muted" data-path=".start_date_local.displayDate()">1:50 PM on Friday, August 29, 2014</p>
+              <h2 class="detail-title" data-if=".title">08/29/2014 Olympic Valley, California USA</h2>
+              <h2 class="detail-title" data-if="!{.title}">An activity recorded on <span data-path=".start_date_local.displayDateShort()">01/31/1015</span></h2>
+              <p class="detail-description" data-if=".description">This was a fun ride around lake tahoe!</p>
+              <p class="detail-description text-muted" data-if="!{.description}">No Description</p>
             </td>
             <td>
               <h4 class="text-primary">Race Pace Conversion Stats:</h4>
-              <p>Stops Detected: <span data-path="req.sessionData.racePace.racePace.removed.length">5</span></p>
-              <p>Total Time Removed: <span data-path="req.sessionData.racePace.racePace.timegained">45</span> seconds</p>
-              <p>Average speed gained: 1.2MPH</p>
+              <p>Stops Detected: <span data-path=".removed.length">5</span></p>
+              <p>Total Time Removed: <span data-path=".timegained.displayTime(false,true)">45</span><span data-if="{.timegained} >= 60"> seconds</span></p>
+              <p>Average speed gained: <span data-path=".speedgained">1.2<span>KPH</p>
               <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download GPX</button>
             </td>
           </tr>
