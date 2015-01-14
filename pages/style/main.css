@@ -23,6 +23,11 @@ body {
   text-align: center;
 }
 
+.data-table-center
+{
+	text-align: center;
+}
+
 .data-table-main td
 {
 	padding-left: 10px;
@@ -106,6 +111,38 @@ body {
 	top: -10px;
 }
 
+.racepace-header {
+	position: relative;
+	top: -60px;
+	height: 0px;
+}
+
+.racepace-container {
+	position: relative;
+	text-align: center;
+}
+
+.avatar-large {
+	width: 124px;
+	height: 124px;
+	border-radius: 50%;
+}
+
+.racepace-label {
+	position: relative;
+	top: 15px;
+	font-size: 100%;
+}
+
+.racepace-time-label {
+	font-size: 100%
+}
 .activity {
 	height: 50px;
+}
+
+.summary{
+	position: absolute;
+	left: 5px;
+	top: 5px;
 }

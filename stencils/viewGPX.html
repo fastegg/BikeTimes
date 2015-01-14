@@ -16,58 +16,61 @@
     <span data-stencil="navbar"></span>
 
     <div class="container container-padding" data-path="req.sessionData.racePace.racePace">
-      <!-- Details -->
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h3 class="panel-title">Details</h3>
+      <!-- General Information Title -->
+      <p class="detail-date text-muted" data-path=".start_date_local.displayDate()">1:50 PM on Friday, August 29, 2014</p>
+      <h2 class="detail-title" data-if=".name">08/29/2014 Olympic Valley, California USA</h2>
+      <h2 class="detail-title" data-if="!{.name}">An Activity Recorded On <span data-path=".start_date_local.displayDateShort()">01/31/1015</span></h2>
+      <!-- Race Pace Title -->
+      <div class="racepace-container">
+        <img data-if="req.sessionData.strava.athlete" class="avatar-large" data-set-src="req.sessionData.strava.athlete.profile">
+        <div class="racepace-header" data-path="req.sessionData.racePace.racePace">
+          <h4 class="label label-primary racepace-label">Race Pace</h4>
+          <h1><span class="label label-primary racepace-time-label" data-path=".racepace_time.displayTime(false, true)">1:43:22</span></h1>
         </div>
-        <div class="panel-body">
-          <table class="data-table">
-            <col style="width: 50%"><col style="width: 50%">
-            <tr><td>
-              <p class="detail-date text-muted" data-path=".start_date_local.displayDate()">1:50 PM on Friday, August 29, 2014</p>
-              <h2 class="detail-title" data-if=".title">08/29/2014 Olympic Valley, California USA</h2>
-              <h2 class="detail-title" data-if="!{.title}">An activity recorded on <span data-path=".start_date_local.displayDateShort()">01/31/1015</span></h2>
-              <p class="detail-description" data-if=".description">This was a fun ride around lake tahoe!</p>
-              <p class="detail-description text-muted" data-if="!{.description}">No Description</p>
-            </td>
-            <td>
-              <h4 class="text-primary">Race Pace Conversion Stats:</h4>
-              <p>Stops Detected: <span data-path=".removed.length">5</span></p>
-              <p>Total Time Removed: <span data-path=".timegained.displayTime(false,true)">45</span><span data-if="{.timegained} >= 60"> seconds</span></p>
-              <p>Average speed gained: <span data-path=".speedgained">1.2<span>KPH</p>
-              <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download GPX</button>
-            </td>
-          </tr>
-        </table>
+
+        <div class="panel panel-default" data-path="req.sessionData.racePace.orig">
+          <div style="display: inline-block;">
+            <table class="data-table-main data-table data-table-center">
+              <col><col><col><col><col>
+              <tr>
+                <td style="width: 160px"><h2><bold><span data-path=".distance.MtoKM().round(1)">49.6</span><span class="subheader">km</span></bold></h2></td>
+                <td style="width: 160px"> <h2><bold data-if="!{.total_elevation_gain}">----</bold><bold><span data-if=".total_elevation_gain" data-path=".total_elevation_gain.round(0)">2245</span><span class="subheader">m</span></bold></h2></td>
+                <td style="width: 160px"></td>
+                <td style="width: 160px"><h2><bold data-path=".moving_time.displayTime(false, true)">1:23:45</bold></h2></td>
+                <td style="width: 160px"><h2><bold data-path=".elapsed_time.displayTime(false, true)">1:23:45</bold></h2></td>
+              </tr>
+              <tr>
+                <td><p><bold>Distance</bold></p></td>
+                <td><p><bold>Elevation Gain</bold></p></td>
+                <td></td>
+                <td><p>Moving Time</p></td>
+                <td><p>Elapsed Time</p></td>
+              </tr>
+            </table>
+          </div>
         </div>
       </div>
-
       <!-- General Info and Map -->
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Overview</h3>
+          <h3 class="panel-title">Map</h3>
         </div>
         <div class="panel-body" style="position: relative">
           <div id="map_canvas" style="width: 100%; height: 500px;"></div>
-          <ul class="list-group summary" style="position: absolute; top: 5px; left: 5px">
-
-            <li class="list-group-item">
-              <table class="data-table-main data-table">
-                <col><col><col>
-                <tr><td><h2><bold>49.6<span class="subheader">mi</span></bold></h2></td><td><h2 class="text-primary"><bold>1:23:45</bold></h2></td><td><h2><bold>2245<span class="subheader">ft</span></bold></h2></td></tr>
-                <tr><td><p><bold>Distance</bold></p></td><td><p class="text-primary"><bold>Race Pace</bold></p></td><td><p>Gain</p></td></tr>
-              </table>
-            </li>
-            <li class="list-group-item">
-              <table class="data-table-secondary data-table" style="width: 100%">
-                <col><col><col>
-                <tr><th></th><th>Avg</th><th>Max</th></tr>
-                <tr><td><p>Speed:</p></td><td><p>14.9<span class="subtext">MPH</span></p></td><td><p>42.9<span class="subtext">MPH</span></p></td></tr>
-              </table>
-              <p class="text-muted no-margin">Moving Time: 1:25:11</p>
-              <p class="text-muted no-margin">Elapsed Time: 1:32:45</p>
-          </ul>
+          <!-- Removing the summary window for now, leaving just the map
+          <div class="summary">
+            <ul class="list-group">
+              <li class="list-group-item">
+                <h4 class="text-primary">Race Pace Conversion Stats:</h4>
+              </li>
+              <li class="list-group-item">
+                <p>Stops Detected: <span data-path=".removed.length">5</span></p>
+                <p>Total Time Removed: <span data-path=".timegained.displayTime(false,true)">45</span><span data-if="{.timegained} >= 60"> seconds</span></p>
+                <p>Average speed gained: <span data-path=".speedgained">1.2<span>KPH</p>
+                <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download GPX</button>
+              </li>
+          </div>
+          -->
         </div>
       </div>
 
