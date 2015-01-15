@@ -146,3 +146,9 @@ body {
 	left: 5px;
 	top: 5px;
 }
+
+.options {
+	position: absolute;
+	right: 15px;
+	top: 50px;
+}

@@ -15,11 +15,18 @@
   <body>
     <span data-stencil="navbar"></span>
 
-    <div class="container container-padding" data-path="req.sessionData.racePace.racePace">
+    <div class="container container-padding relative" data-path="req.sessionData.racePace.racePace">
       <!-- General Information Title -->
       <p class="detail-date text-muted" data-path=".start_date_local.displayDate()">1:50 PM on Friday, August 29, 2014</p>
       <h2 class="detail-title" data-if=".name">08/29/2014 Olympic Valley, California USA</h2>
       <h2 class="detail-title" data-if="!{.name}">An Activity Recorded On <span data-path=".start_date_local.displayDateShort()">01/31/1015</span></h2>
+      <!-- Quick options -->
+      <div class="options">
+        <div class="btn-group" role="group" aria-label="...">
+          <button type="button" class="btn btn-primary active">KPH/M</button>
+          <button type="button" class="btn btn-default">MPH/Ft</button>
+        </div>
+      </div>
       <!-- Race Pace Title -->
       <div class="racepace-container">
         <img data-if="req.sessionData.strava.athlete" class="avatar-large" data-set-src="req.sessionData.strava.athlete.profile">
@@ -48,6 +55,7 @@
               </tr>
             </table>
           </div>
+          <p data-path="req.sessionData.racePace.racePace" style="border-top: solid 1px; border-color: #CCC; padding-top: 10px">Avg KPH: <span data-path=".average_speed.MPStoKPH().round(1)">19.4</span> | <a href="javascript:toggleStops()">Stops Detected: <span data-path=".removed.length">4</span></a> | Time Difference: <span data-path=".timegained.displayTime(false,false)">45</span><span data-if="{.timegained} <= 60"> seconds</span></p>
         </div>
       </div>
       <!-- General Info and Map -->
@@ -65,7 +73,7 @@
               </li>
               <li class="list-group-item">
                 <p>Stops Detected: <span data-path=".removed.length">5</span></p>
-                <p>Total Time Removed: <span data-path=".timegained.displayTime(false,true)">45</span><span data-if="{.timegained} >= 60"> seconds</span></p>
+                <p>Total Time Removed: <span data-path=".timegained.displayTime(false,true)">45</span><span data-if="{.timegained} <= 60"> seconds</span></p>
                 <p>Average speed gained: <span data-path=".speedgained">1.2<span>KPH</p>
                 <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download GPX</button>
               </li>
@@ -85,15 +93,7 @@
         </div>
       </div>
     </div><!-- /.container -->
-
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+    <span data-stencil='footer'></span>
+    <span data-stencil='last'></span>
   </body>
  </html>

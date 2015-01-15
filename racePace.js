@@ -107,7 +107,7 @@ function removeStops(activity, removeLocations)
 			if(bCurrentlyStopped === false)
 			{
 				bCurrentlyStopped = true;
-				removeLocations.push({loc: i, timeRemoved: 0, distance: activity.streams.distance.data[i]});
+				removeLocations.push({loc: i, timeRemoved: 0, distance: activity.streams.distance.data[i], lat: activity.streams.latlng.data[i][0], lon: activity.streams.latlng.data[i][1]});
 			}
 
 			fTimeRemoving += fTimeBetween;

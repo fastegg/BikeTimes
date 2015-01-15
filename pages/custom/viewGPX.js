@@ -1,5 +1,9 @@
 var gpxData = {};
 
+var map;
+var stopMarkers = [];
+var bShowingMarkers = false;
+
 //GPXDATAREPLACE//
 
 function mapPanToBounds(map, GPXbounds)
@@ -15,6 +19,64 @@ function mapPanToBounds(map, GPXbounds)
 
 	map.panToBounds(g_bounds);
 }
+
+function createStopMarkers(data){
+	for(i=0;i<data.length;i++)
+	{
+		var marker = new google.maps.Marker({
+	      position: new google.maps.LatLng(data[i].lat, data[i].lon),
+	      map: null,
+	      //icon: startImage,
+	      title:i+""
+		});
+
+		stopMarkers.push(marker);
+	}
+}
+
+function toggleStops(){
+	var i;
+
+	for(i=0;i<stopMarkers.length;i++)
+	{
+		if(bShowingMarkers)
+			stopMarkers[i].setMap(null);
+		else
+			stopMarkers[i].setMap(map);
+	}
+
+	bShowingMarkers = !bShowingMarkers;
+}
+
+var startImage = {
+	url: 'img/mapicons/marker-icon-green.png',
+	// This marker is 20 pixels wide by 32 pixels tall.
+	size: new google.maps.Size(32, 32),
+	// The origin for this image is 0,0.
+	origin: new google.maps.Point(0,0),
+	// The anchor for this image is the base of the flagpole at 0,32.
+	anchor: new google.maps.Point(0, 16)
+};
+
+var endImage = {
+	url: 'img/mapicons/marker-icon-red.png',
+	// This marker is 20 pixels wide by 32 pixels tall.
+	size: new google.maps.Size(32, 32),
+	// The origin for this image is 0,0.
+	origin: new google.maps.Point(0,0),
+	// The anchor for this image is the base of the flagpole at 0,32.
+	anchor: new google.maps.Point(0, 16)
+};
+
+var stopImage = {
+	url: 'img/mapicons/marker-icon-orange.png',
+	// This marker is 20 pixels wide by 32 pixels tall.
+	size: new google.maps.Size(32, 32),
+	// The origin for this image is 0,0.
+	origin: new google.maps.Point(0,0),
+	// The anchor for this image is the base of the flagpole at 0,32.
+	anchor: new google.maps.Point(0, 16)
+};
 
 function mapPoints(map, data)
 {
@@ -42,6 +104,21 @@ function mapPoints(map, data)
 
     map.fitBounds(bounds);
     map.panToBounds(bounds);
+
+    //Set start and stop markers
+    var startMarker = new google.maps.Marker({
+      position: new google.maps.LatLng(data[0][0], data[0][1]),
+      map: map,
+      //icon: startImage,
+      title:"Start"
+	});
+
+	var endMarker = new google.maps.Marker({
+      position: new google.maps.LatLng(data[data.length-1][0], data[data.length-1][1]),
+      map: map,
+      //icon: endImage,
+      title:"Finish"
+	});
 }
 
 function initMap() {
@@ -55,6 +132,7 @@ function initMap() {
 	map = new google.maps.Map(mapCanvas, mapOptions);
 
 	mapPoints(map,gpxData.orig.streams.latlng.data);
+	createStopMarkers(gpxData.racePace.removed);
 }
 
 function lerp(a, b, p) {
@@ -128,71 +206,6 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
     	data_spd.addRow([dist, kph, kph_rp]);
     }
 
-/*
-	while((i < trk.trkseg.length && n < trk.trkseg[i].trkpt.length) || (j < trk_rp.trkseg.length && m < trk_rp.trkseg[j].trkpt.length))
-	{
-		var dist;
-		var kph = undefined;
-		var kph_rp = undefined;
-
-		if(i < trk.trkseg.length && (j >= trk_rp.trkseg.length || trk.trkseg[i].trkpt[n].dist < trk_rp.trkseg[j].trkpt[m].dist))
-		{
-			if(j < trk_rp.trkseg.length && m-1 > 0)
-			{
-				var percentage = (trk.trkseg[i].trkpt[n].dist - trk_rp.trkseg[j].trkpt[m-1].dist) / (trk_rp.trkseg[j].trkpt[m].dist - trk_rp.trkseg[j].trkpt[m-1].dist);
-				kph_rp = lerp(trk_rp.trkseg[j].trkpt[m-1].kph, trk_rp.trkseg[j].trkpt[m].kph, percentage)
-			}
-			dist = trk.trkseg[i].trkpt[n].dist;
-			kph = trk.trkseg[i].trkpt[n].kph;
-			n++;
-		}
-		else if(j < trk_rp.trkseg.length && (i >= trk.trkseg.length || trk.trkseg[i].trkpt[n].dist > trk_rp.trkseg[j].trkpt[m].dist))
-		{
-			if(i < trk.trkseg.length && n-1 > 0)
-			{
-				var percentage = (trk_rp.trkseg[j].trkpt[m].dist - trk.trkseg[i].trkpt[n-1].dist) / (trk.trkseg[i].trkpt[n].dist - trk.trkseg[i].trkpt[n-1].dist);
-				kph = lerp(trk.trkseg[i].trkpt[n-1].kph, trk.trkseg[i].trkpt[n].kph, percentage)
-			}
-			dist = trk_rp.trkseg[j].trkpt[m].dist;
-			kph_rp = trk_rp.trkseg[j].trkpt[m].kph;
-			m++
-		}
-		else
-		{
-			dist = trk.trkseg[i].trkpt[n].dist;
-			kph = trk.trkseg[i].trkpt[n].kph
-			kph_rp = trk_rp.trkseg[j].trkpt[m].kph;
-
-			n++;
-			m++;
-		}
-
-		if(kph < 0 || kph_rp < 0)
-		{
-			console.log('KPH Below 0!');
-			console.log('KPH: ' + kph + " KPHRP: " + kph_rp);
-			console.log('M:' + m + ' N:' + n);
-			console.log('I:' + i + 'J:' + j);
-		}
-		else
-		{
-			data_spd.addRow([dist, kph, kph_rp]);	
-		}
-		
-
-		if(i < trk.trkseg.length && n >= trk.trkseg[i].trkpt.length)
-    	{
-    		i++;
-    		n=0;
-    	}
-
-    	if(j < trk_rp.trkseg.length && m >= trk_rp.trkseg[j].trkpt.length)
-    	{
-    		j++;
-    		m=0
-    	}
-	}
-*/
 	//Map evevation basied on old information
 	if(orig.streams.altitude)
 	{
