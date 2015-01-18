@@ -152,3 +152,9 @@ body {
 	right: 15px;
 	top: 50px;
 }
+.chart-info {
+	text-align: center;
+	color: #777;
+	background-color: #eee;
+	font-weight: bold;
+}

@@ -252,14 +252,138 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
 	chart_spd.draw(data_spd, options_spd);
 }
 
-function initGraph() {
-	var chart_ele = new google.visualization.LineChart(document.getElementById('graph-canvas-ele'));
-	var chart_spd = new google.visualization.LineChart(document.getElementById('graph-canvas-spd'));
+var chart_ele;
+var chart_spd;
 
-	var options_ele = {};
-	var options_spd = {};
+var distObj;
+var eleObj;
+var gradeObj;
+var timeObj;
+var spdObj;
+
+function round(number, decPlaces)
+{
+	var decMulti = Math.pow(10,decPlaces);
+
+	return Math.round(number * decMulti) / decMulti;
+}
+
+function pad(num, size) {
+    var s = num+"";
+    while (s.length < size) s = "0" + s;
+    return s;
+}
+
+function displayTime(time, displayHours, displayMins, padSeconds)
+{
+	var newDate = new Date(time * 1000);
+	var rtn = '';
+
+	if(displayHours || newDate.getUTCHours())
+	{
+		rtn += pad(newDate.getUTCHours(),2) + ':';
+		displayMins = true;
+	}
+
+	if(displayMins || newDate.getUTCMinutes())
+	{
+		rtn += pad(newDate.getUTCMinutes(),2) + ':';
+		padSeconds = true;
+	}
+
+	if(padSeconds)
+		rtn += pad(newDate.getUTCSeconds(), 2);
+	else
+		rtn += newDate.getUTCSeconds();
+
+	return rtn;
+}
+
+function set_targets(dist, ele, grade, time, speed)
+{
+	distObj.html(round(dist,2) + ' km');
+	eleObj.html(round(ele,2) + ' m');
+	gradeObj.html(round(grade*100,1) + '%');
+	timeObj.html(displayTime(time,true));
+	spdObj.html(round(speed,2));
+}
+
+function chart_hovor_ele(data)
+{
+	//Get distance point useing orig data
+	var dist = gpxData.orig.streams.distance.data[data.row - 1];
+	var ele = gpxData.orig.streams.altitude.data[data.row - 1];
+
+	//console.log(gpxData.orig.streams.altitude.data[data.row-1] - gpxData.orig.streams.altitude.data[data.row-2]);
+
+	var grade = data.row > 2 ? ((gpxData.orig.streams.altitude.data[data.row-1] - gpxData.orig.streams.altitude.data[data.row-2]) / 1000) / (gpxData.orig.streams.distance.data[data.row-1] - gpxData.orig.streams.distance.data[data.row-2]) : 0;
+	var time = gpxData.orig.streams.time.data[data.row - 1];
+	var speed = gpxData.orig.streams.velocity.data[data.row -1];
+
+
+	set_targets(dist, ele, grade, time, speed);
+}
+
+function chart_hovor_spd(data)
+{
+
+}
+
+function chart_select_spd()
+{
+
+}
+
+function chart_select_ele()
+{
+
+}
+
+function chart_out()
+{
+	eleObj.html('---');
+	distObj.html('---');
+	gradeObj.html('---');
+	timeObj.html('---');
+	spdObj.html('---');
+}
+
+function initGraph() {
+	chart_ele = new google.visualization.AreaChart(document.getElementById('graph-canvas-ele'));
+	chart_spd = new google.visualization.LineChart(document.getElementById('graph-canvas-spd'));
+
+	distObj = $('#ele-info-dist');
+	timeObj = $('#ele-info-time');
+	gradeObj = $('#ele-info-grade');
+	eleObj = $('#ele-info-ele');
+	spdObj = $('#spd-info-kph');
+
+	var explorer = {
+		maxZoomOut: 1,
+		maxZoomIn: 0.01,
+		actions: ['dragToZoom', 'rightClickToReset'],
+		axis: 'horizontal'
+	}
+
+	var tooltip = {
+		trigger: 'none'
+	}
+
+	var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
+	var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
 
 	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace);
+
+	google.visualization.events.addListener(chart_ele, 'onmouseover', chart_hovor_ele);
+	google.visualization.events.addListener(chart_spd, 'onmouseover', chart_hovor_spd);
+
+	google.visualization.events.addListener(chart_ele, 'onmouseout', chart_out);
+	google.visualization.events.addListener(chart_spd, 'onmouseout', chart_out);
+
+	google.visualization.events.addListener(chart_ele, 'select', chart_select_ele);
+	google.visualization.events.addListener(chart_spd, 'select', chart_select_spd);
+
+
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);
