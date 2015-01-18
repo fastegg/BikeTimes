@@ -78,6 +78,16 @@ var stopImage = {
 	anchor: new google.maps.Point(0, 16)
 };
 
+var posImage = {
+	url: 'img/mapicons/marker-icon-blue.png',
+	// This marker is 20 pixels wide by 32 pixels tall.
+	size: new google.maps.Size(32, 32),
+	// The origin for this image is 0,0.
+	origin: new google.maps.Point(0,0),
+	// The anchor for this image is the base of the flagpole at 0,32.
+	anchor: new google.maps.Point(0, 16)
+}
+
 function mapPoints(map, data)
 {
 	var i,n;
@@ -121,6 +131,8 @@ function mapPoints(map, data)
 	});
 }
 
+var posMarker;
+
 function initMap() {
 	var mapCanvas = document.getElementById('map_canvas');
 	var mapOptions = {
@@ -133,6 +145,13 @@ function initMap() {
 
 	mapPoints(map,gpxData.orig.streams.latlng.data);
 	createStopMarkers(gpxData.racePace.removed);
+
+	posMarker = new google.maps.Marker({
+      position: null,
+      map: null,
+      //icon: posImage,
+      title:i+""
+	});
 }
 
 function lerp(a, b, p) {
@@ -299,13 +318,18 @@ function displayTime(time, displayHours, displayMins, padSeconds)
 	return rtn;
 }
 
-function set_targets(dist, ele, grade, time, speed)
+function set_targets(dist, ele, grade, time, speed, pos)
 {
 	distObj.html(round(dist,2) + ' km');
 	eleObj.html(round(ele,2) + ' m');
 	gradeObj.html(round(grade*100,1) + '%');
 	timeObj.html(displayTime(time,true));
 	spdObj.html(round(speed,2));
+
+	if(posMarker.getMap() === null)
+		posMarker.setMap(map);
+
+	posMarker.setPosition(new google.maps.LatLng(pos.lat, pos.lng));
 }
 
 function chart_hovor_ele(data)
@@ -321,7 +345,7 @@ function chart_hovor_ele(data)
 	var speed = gpxData.orig.streams.velocity.data[data.row -1];
 
 
-	set_targets(dist, ele, grade, time, speed);
+	set_targets(dist, ele, grade, time, speed, {lat: gpxData.orig.streams.latlng.data[data.row-1][0], lng: gpxData.orig.streams.latlng.data[data.row-1][1]});
 }
 
 function chart_hovor_spd(data)
@@ -346,6 +370,18 @@ function chart_out()
 	gradeObj.html('---');
 	timeObj.html('---');
 	spdObj.html('---');
+
+	posMarker.setMap(null);
+}
+
+function chart_move()
+{
+
+}
+
+function chart_enter()
+{
+	posMarker.setMap(map);
 }
 
 function initGraph() {
@@ -369,7 +405,7 @@ function initGraph() {
 		trigger: 'none'
 	}
 
-	var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
+	var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}, annotations: {style: 'line'}};
 	var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
 
 	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace);
