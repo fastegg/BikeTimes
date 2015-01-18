@@ -149,7 +149,6 @@ function smoothenStops(activity, removeLocations)
 
 	for(i=removeLocations.length-1;i>=0;i--)
 	{
-		console.log('Remove loc: ' + i);
 		var pos = removeLocations[i].loc;
 
 		var start = pos;
@@ -206,7 +205,6 @@ function smoothenStops(activity, removeLocations)
 			}
 		}
 
-		console.log('Check...');
 
 		var fTotalDist = activity.streams.distance.data[end] - activity.streams.distance.data[start];
 		var fAvgKPH = (activity.streams.velocity.data[start] + activity.streams.velocity.data[end]) / 2;
@@ -239,7 +237,6 @@ function smoothenStops(activity, removeLocations)
 			fTimeSpot = activity.streams.time.data[nextpt] - fTimeStart;
 		}
 
-		console.log('Check...');
 
 		var fLeftOverTime = fTimeToTravel - (fTimeSpot - (activity.streams.time.data[nextpt] - activity.streams.time.data[nextpt-1]));
 		var fLeftOverDist = (activity.streams.velocity.data[end] / 3600 * fLeftOverTime);
@@ -252,7 +249,6 @@ function smoothenStops(activity, removeLocations)
 
 			fTimeRemoved = activity.streams.time.data[end + 1] - activity.streams.time.data[nextpt];
 
-			console.log('Removing ' + fTimeRemoved + ' secs at ' + nextpt);
 
 			for(var seg in activity.streams)
 			{
@@ -261,7 +257,6 @@ function smoothenStops(activity, removeLocations)
 		}
 		else
 		{
-			console.log('Not removing spots: ' + nextpt + ' - ' + end);
 		}
 
 		if(fLeftOverDist > 0 || fLeftOverTime > 0 || fTimeRemoved > 0)
@@ -291,7 +286,6 @@ function smoothenStops(activity, removeLocations)
 					activity.streams.velocity.data[iDist] = KPH(activity.streams.distance.data[iDist] - activity.streams.distance.data[iDist-1], fTimeBetween);
 				}
 
-				console.log('Check...');
 
 				if(fLeftOverDist)
 				{
@@ -335,7 +329,6 @@ function smoothenStops(activity, removeLocations)
 						newLastPoint.time -= 5;
 						newLastPoint.distance -= newDist;
 
-						console.log('Setting new last point...', newLastPoint);
 					}
 
 					newLastPoint.velocity = KPH(newLastPoint.distance, newLastPoint.time);
@@ -351,7 +344,6 @@ function smoothenStops(activity, removeLocations)
 		activity.streams.distance.data.push(newLastPoint.distance + activity.streams.distance.data[activity.streams.distance.data.length-1]);
 	}
 
-	console.log('Done!');
 }
 
 /*
@@ -409,20 +401,17 @@ function calcRacePace(orig)
 	var rtn = deepcopy(orig);
 	var removeLocations = [];
 
-	console.log('Remove stops');
 
 	removeStops(rtn, removeLocations);
 
 	rtn.moving_time = rtn.streams.time.data[rtn.streams.time.data.length-1];
 
-	console.log('Smoothen stops');
 
 	smoothenStops(rtn, removeLocations);
 	//Set GPX data only when requested
 	rtn.removed = removeLocations;
 	rtn.timegained = 0;
 
-	console.log('Calculating time gained');
 
 	for(i=0;i<removeLocations.length;i++)
 	{
@@ -447,7 +436,6 @@ function setFromGPX(gpx)
 	{
 		if(lastDist > rtn.racePace.streams.distance.data[i])
 		{
-			console.log("Problem found: " + i);
 		}
 
 		lastDist = rtn.racePace.streams.distance.data[i];
