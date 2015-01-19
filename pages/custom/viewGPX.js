@@ -383,16 +383,6 @@ function chart_hovor_spd(data)
 	set_targets(dist, ele, grade, time, speed, {lat: gpxData.racePace.streams.latlng.data[eleRow][0], lng: gpxData.racePace.streams.latlng.data[eleRow][1]});
 }
 
-function chart_select_spd()
-{
-
-}
-
-function chart_select_ele()
-{
-
-}
-
 function chart_out()
 {
 	eleObj.html('---');
@@ -407,14 +397,62 @@ function chart_out()
 	chart_spd.setSelection([]);
 }
 
-function chart_move()
+function findChartMouseHAxis(event, chart)
 {
+	var rtn = {x: 0, y: 0};
 
+	event = event || window.event; // IE-ism
+
+    rtn.x = event.offsetX;
+    rtn.y = event.offsetY;
+
+    var cli = chart.getChartLayoutInterface();
+    var box = cli.getChartAreaBoundingBox();
+
+    if(rtn.x > box.left + box.width)
+    	return null;
+    if(rtn.x < box.left)
+    	return null;
+    if(rtn.y > box.top + box.height)
+    	return null;
+    if(rtn.y < box.top)
+    	return null;
+
+    rtn.x -= box.left;
+    rtn.y -= box.top;
+
+	return cli.getHAxisValue(rtn.x);
 }
 
-function chart_enter()
+function chart_enter(event, chart)
 {
 	posMarker.setMap(map);
+}
+
+function chart_move(event, chart)
+{
+	var dist = findChartMouseHAxis(event, chart);
+
+	var eleRow = dataTable_getRowForDist(data_ele, 0, dist);
+	var spdRow = dataTable_getRowForDist(data_spd, 0, dist);
+
+	var ele = gpxData.racePace.streams.altitude.data[eleRow];
+	var grade = eleRow > 1 ? ((gpxData.racePace.streams.altitude.data[eleRow] - gpxData.racePace.streams.altitude.data[eleRow-1]) / 1000) / (gpxData.racePace.streams.distance.data[eleRow] - gpxData.racePace.streams.distance.data[eleRow-1]) : 0;
+	var speed = data_spd.getValue(spdRow, 2);
+	var time = gpxData.racePace.streams.time.data[eleRow];
+
+	set_targets(dist, ele, grade, time, speed, {lat: gpxData.racePace.streams.latlng.data[eleRow][0], lng: gpxData.racePace.streams.latlng.data[eleRow][1]});
+}
+
+function chart_leave(event, chart)
+{
+	eleObj.html('---');
+	distObj.html('---');
+	gradeObj.html('---');
+	timeObj.html('---');
+	spdObj.html('---');
+
+	posMarker.setMap(null);
 }
 
 function initGraph() {
@@ -442,17 +480,6 @@ function initGraph() {
 	var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
 
 	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace);
-
-	google.visualization.events.addListener(chart_ele, 'onmouseover', chart_hovor_ele);
-	google.visualization.events.addListener(chart_spd, 'onmouseover', chart_hovor_spd);
-
-	google.visualization.events.addListener(chart_ele, 'onmouseout', chart_out);
-	google.visualization.events.addListener(chart_spd, 'onmouseout', chart_out);
-
-	google.visualization.events.addListener(chart_ele, 'select', chart_select_ele);
-	google.visualization.events.addListener(chart_spd, 'select', chart_select_spd);
-
-
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);

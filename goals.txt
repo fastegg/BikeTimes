@@ -1,0 +1,23 @@
+Goals for Monday:
+
+(1)Charts dont suck to hover over
+(1.5)Charts Zoom In Together
+(2)Unit Conversion works for graphs
+(3)Project works on huroku
+(4)Graphical Icons for Maps
+(5)Graphical Icon for no profile
+(6)Head out on bike ride for test data
+
+
+Goals for Tuesday:
+Add graphics to pages
+Finish about & contact page
+Links for test data routes
+Find out how to see public activites
+
+Other things to do:
+Mobile views
+Issue tracker/reporter
+Catch all crashes
+Track emails for accounts
+Database for all activites viewed with times
