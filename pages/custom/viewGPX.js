@@ -158,10 +158,13 @@ function lerp(a, b, p) {
 	return a + p * (b - a);
 }
 
+var data_ele;
+var data_spd;
+
 function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, racepace)
 {
-	var data_ele = new google.visualization.DataTable();
-	var data_spd = new google.visualization.DataTable();
+	data_ele = new google.visualization.DataTable();
+	data_spd = new google.visualization.DataTable();
 
 	data_ele.addColumn('number');
     data_ele.addColumn('number');
@@ -226,11 +229,11 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
     }
 
 	//Map evevation basied on old information
-	if(orig.streams.altitude)
+	if(racepace.streams.altitude)
 	{
-		for(i=0;i<orig.streams.altitude.data.length;i++)
+		for(i=0;i<racepace.streams.altitude.data.length;i++)
 		{
-			var ele = parseFloat(orig.streams.altitude.data[i]);
+			var ele = parseFloat(racepace.streams.altitude.data[i]);
 
 			//Assume 0 means something went wrong. Use last elevation
 			if(ele === 0.0)
@@ -239,7 +242,7 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
 
 				while(n > 0)
 				{
-					ele = parseFloat(orig.streams.altitude.data[n]);
+					ele = parseFloat(racepace.streams.altitude.data[n]);
 
 					if(ele !== 0.0)
 						break;
@@ -251,9 +254,9 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
 				{
 					n = i;
 
-					while(n < orig.streams.altitude.data.length - 1)
+					while(n < racepace.streams.altitude.data.length - 1)
 					{
-						ele = parseFloat(orig.streams.altitude.data[n])
+						ele = parseFloat(racepace.streams.altitude.data[n])
 
 						if(ele !== 0.0)
 							break;
@@ -263,7 +266,7 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
 				}
 			}
 
-			data_ele.addRow([orig.streams.distance.data[i], ele]);
+			data_ele.addRow([racepace.streams.distance.data[i], ele]);
 		}
 	}
 
@@ -332,25 +335,52 @@ function set_targets(dist, ele, grade, time, speed, pos)
 	posMarker.setPosition(new google.maps.LatLng(pos.lat, pos.lng));
 }
 
+function dataTable_getRowForDist(table, column, dist)
+{
+	var i = 0;
+
+	while(dist > table.getValue(i,column))
+	{
+		i++;
+	}
+
+	return i;
+}
+
 function chart_hovor_ele(data)
 {
-	//Get distance point useing orig data
-	var dist = gpxData.orig.streams.distance.data[data.row - 1];
-	var ele = gpxData.orig.streams.altitude.data[data.row - 1];
+	var dist = gpxData.racePace.streams.distance.data[data.row];
+	var ele = gpxData.racePace.streams.altitude.data[data.row];
 
-	//console.log(gpxData.orig.streams.altitude.data[data.row-1] - gpxData.orig.streams.altitude.data[data.row-2]);
+	var grade = data.row > 2 ? ((gpxData.racePace.streams.altitude.data[data.row] - gpxData.racePace.streams.altitude.data[data.row-1]) / 1000) / (gpxData.racePace.streams.distance.data[data.row] - gpxData.racePace.streams.distance.data[data.row-1]) : 0;
+	var time = gpxData.racePace.streams.time.data[data.row];
+	var speed = gpxData.racePace.streams.velocity.data[data.row];
 
-	var grade = data.row > 2 ? ((gpxData.orig.streams.altitude.data[data.row-1] - gpxData.orig.streams.altitude.data[data.row-2]) / 1000) / (gpxData.orig.streams.distance.data[data.row-1] - gpxData.orig.streams.distance.data[data.row-2]) : 0;
-	var time = gpxData.orig.streams.time.data[data.row - 1];
-	var speed = gpxData.orig.streams.velocity.data[data.row -1];
+	chart_spd.setSelection([{row: dataTable_getRowForDist(data_spd, 0, dist), column: 2}]);
 
-
-	set_targets(dist, ele, grade, time, speed, {lat: gpxData.orig.streams.latlng.data[data.row-1][0], lng: gpxData.orig.streams.latlng.data[data.row-1][1]});
+	set_targets(dist, ele, grade, time, speed, {lat: gpxData.racePace.streams.latlng.data[data.row][0], lng: gpxData.racePace.streams.latlng.data[data.row][1]});
 }
 
 function chart_hovor_spd(data)
 {
+	if(data.column === 1)
+	{
+		data.column = 2
+		chart_spd.setSelection({row: data.row, column: 2});
+	}
+	
+	var dist = data_spd.getValue(data.row, 0);
 
+	var eleRow = dataTable_getRowForDist(data_ele, 0, dist);
+	
+	var ele = gpxData.racePace.streams.altitude.data[eleRow];
+	var grade = eleRow > 1 ? ((gpxData.racePace.streams.altitude.data[eleRow] - gpxData.racePace.streams.altitude.data[eleRow-1]) / 1000) / (gpxData.racePace.streams.distance.data[eleRow] - gpxData.racePace.streams.distance.data[eleRow-1]) : 0;
+	var speed = data_spd.getValue(data.row, data.column);
+	var time = gpxData.racePace.streams.time.data[eleRow];
+
+	chart_ele.setSelection([{row: eleRow, column: 1}]);
+
+	set_targets(dist, ele, grade, time, speed, {lat: gpxData.racePace.streams.latlng.data[eleRow][0], lng: gpxData.racePace.streams.latlng.data[eleRow][1]});
 }
 
 function chart_select_spd()
@@ -372,6 +402,9 @@ function chart_out()
 	spdObj.html('---');
 
 	posMarker.setMap(null);
+
+	chart_ele.setSelection([]);
+	chart_spd.setSelection([]);
 }
 
 function chart_move()
@@ -405,7 +438,7 @@ function initGraph() {
 		trigger: 'none'
 	}
 
-	var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}, annotations: {style: 'line'}};
+	var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
 	var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
 
 	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace);

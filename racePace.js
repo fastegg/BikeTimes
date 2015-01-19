@@ -249,15 +249,52 @@ function smoothenStops(activity, removeLocations)
 
 			fTimeRemoved = activity.streams.time.data[end + 1] - activity.streams.time.data[nextpt];
 
-
 			for(var seg in activity.streams)
 			{
 				activity.streams[seg].data.splice(nextpt,ptsRemoved);
 			}
 		}
-		else
+
+		if(fLeftOverDist || fLeftOverTime)
 		{
+			for(var stream in activity.streams)
+			{
+				if(stream === 'distance')
+				{
+					activity.streams[stream].data.splice(nextpt, 0, activity.streams[stream].data[nextpt-1] + fLeftOverDist);
+				}
+				else if(stream === 'time')
+				{
+					activity.streams[stream].data.splice(nextpt, 0, activity.streams[stream].data[nextpt-1] + fLeftOverTime);
+				}
+				else if(stream === 'velocity')
+				{
+					activity.streams[stream].data.splice(nextpt, 0, KPH(fLeftOverDist, fLeftOverTime));
+				}
+				else if(stream === 'elevation')
+				{
+
+				}
+				else
+				{
+					//Fix these up later
+				}
+			}
 		}
+
+		if(fTimeRemoved)
+		{
+			var iDist;
+			
+			for(iDist=nextpt+1;iDist<activity.streams.time.data.length;iDist++)
+			{
+				activity.streams.time.data[iDist] -= fTimeRemoved;
+			}
+		}
+
+		removeLocations.loc = nextpt;
+
+		/*
 
 		if(fLeftOverDist > 0 || fLeftOverTime > 0 || fTimeRemoved > 0)
 		{
@@ -335,14 +372,17 @@ function smoothenStops(activity, removeLocations)
 				}
 			}
 		}
+		*/
 	}
 
+	/*
 	if(newLastPoint !== undefined && newLastPoint.time != 0)
 	{
 		activity.streams.velocity.data.push(newLastPoint.velocity);
 		activity.streams.time.data.push(newLastPoint.time + activity.streams.time.data[activity.streams.time.data.length-1]);
 		activity.streams.distance.data.push(newLastPoint.distance + activity.streams.distance.data[activity.streams.distance.data.length-1]);
 	}
+	*/
 
 }
 
@@ -372,6 +412,25 @@ function perserveGPXData(oldtrk, newtrk)
 }
 */
 
+function perserveData(orig, racePace)
+{
+	var i;
+	var n=0;
+
+	for(i=1;i<racePace.streams.distance.data.length;i++)
+	{
+		var dist = racePace.streams.distance.data[i];
+
+		while(orig.streams.distance.data[n] < racePace.streams.distance.data[i])
+		{
+			n++;
+		}
+
+		var pct = (racePace.streams.distance.data[i] - orig.streams.distance.data[n-1]) / (orig.streams.distance.data[n] - orig.streams.distance.data[n-1]);
+		racePace.streams.altitude.data[i] = lerp(orig.streams.altitude.data[n-1], orig.streams.altitude.data[n], pct);
+	}
+}
+
 function calcRacePace(orig)
 {
 	var i;
@@ -398,12 +457,11 @@ function calcRacePace(orig)
 		}
 	}
 
-	var rtn = deepcopy(orig);
 	var removeLocations = [];
 
+	removeStops(orig, removeLocations);
 
-	removeStops(rtn, removeLocations);
-
+	var rtn = deepcopy(orig);
 	rtn.moving_time = rtn.streams.time.data[rtn.streams.time.data.length-1];
 
 
@@ -412,6 +470,7 @@ function calcRacePace(orig)
 	rtn.removed = removeLocations;
 	rtn.timegained = 0;
 
+	perserveData(orig, rtn);
 
 	for(i=0;i<removeLocations.length;i++)
 	{
@@ -429,17 +488,6 @@ function setFromGPX(gpx)
 
 	rtn.orig = gpx2segs.convert(gpx);
 	rtn.racePace = calcRacePace(rtn.orig);
-
-	var lastDist = 0;
-
-	for(var i=0;i<rtn.racePace.streams.distance.data.length;i++)
-	{
-		if(lastDist > rtn.racePace.streams.distance.data[i])
-		{
-		}
-
-		lastDist = rtn.racePace.streams.distance.data[i];
-	}
 
 	return rtn;
 }
