@@ -1,17 +1,21 @@
 <html>
 <head>
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <title data-if="req.sessionData.racePace.racePace.name" data-path="'Race Pace: ' + {req.sessionData.racePace.racePace.name}">Race Pace: Title</title>
+  <title data-if="!{req.sessionData.racePace.racePace.name}" data-path="'Race Pace: An Activity Recorded On ' + {req.sessionData.racePace.racePace.start_date_local.displayDateShort()}">Race Pace: Title</title>
 
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script src="https://maps.googleapis.com/maps/api/js"></script>
-<script src="custom/viewGPX.js"></script>
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
 
-<link href="style/main.css" rel="stylesheet">
-<link id="unitsCSS" href="style/kph.css" rel="stylesheet">
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script src="https://maps.googleapis.com/maps/api/js"></script>
+  <script type="text/javascript" src="code/cookieSetter.js"></script>
+  <script src="custom/viewGPX.js"></script>
+
+  <link href="style/main.css" rel="stylesheet">
+  <link id="unitsCSS" href="style/kph.css" rel="stylesheet">
 
 </head>
   <body>

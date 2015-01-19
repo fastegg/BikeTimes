@@ -19,11 +19,9 @@
 
       <ul class="nav navbar-nav navbar-right" data-path="req.sessionData">
         <li data-if=".strava.stravaToken">
-          <p class="navbar-text relative"><img class="avatar" data-set-src=".strava.athlete.profile_medium">  Welcome <span data-path="{.strava.athlete.firstname} + ' ' + {.strava.athlete.lastname}">John Smith</span></p>
-        </li>
-        <li data-if=".strava.stravaToken">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
-            <span class="glyphicon glyphicon-chevron-down"></span>
+            <p class="navbar-text relative"><img class="avatar" data-set-src=".strava.athlete.profile_medium"></p>
+            <span data-path="{.strava.athlete.firstname} + ' ' + {.strava.athlete.lastname}">John Smith</span>  <span class="glyphicon glyphicon-chevron-down"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="/strava">Activity List</a></li>

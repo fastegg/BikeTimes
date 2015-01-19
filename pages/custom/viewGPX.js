@@ -560,7 +560,14 @@ function initGraph() {
 	eleObj = $('#ele-info-ele');
 	spdObj = $('#spd-info-kph');
 
-	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 1.0, 1.0);
+	if(getCookie('units') == 1)
+	{
+		setMPH();
+	}
+	else
+	{
+		setKPH();
+	}
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);
@@ -568,24 +575,28 @@ google.maps.event.addDomListener(window, 'load', initMap);
 google.load("visualization", "1", {packages:["corechart"]});
 google.setOnLoadCallback(initGraph);
 
-var units = 0; //0 == KPH, 1 == MPH
+var units = -1; //0 == KPH, 1 == MPH
 
 function setKPH()
 {
 	if(units != 0)
+	{
 		$("#unitsCSS").attr("href","style/kph.css");
-
-	units = 0;
-
-	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 1.0, 1.0);
+		units = 0;
+		graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 1.0, 1.0);
+	}
+		
+	setCookie('units', 0);
 }
 
 function setMPH()
 {
 	if(units != 1)
+	{
 		$("#unitsCSS").attr("href","style/mph.css");
+		units = 1;
+		graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 0.621371, 3.28084);
+	}
 
-	units = 1;
-
-	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 0.621371, 3.28084);
+	setCookie('units', 1);
 }
