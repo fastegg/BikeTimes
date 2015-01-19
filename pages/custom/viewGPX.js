@@ -397,7 +397,7 @@ function chart_out()
 	chart_spd.setSelection([]);
 }
 
-function findChartMouseHAxis(event, chart)
+function findChartMouseHAxis(event, cli)
 {
 	var rtn = {x: 0, y: 0};
 
@@ -406,7 +406,6 @@ function findChartMouseHAxis(event, chart)
     rtn.x = event.offsetX;
     rtn.y = event.offsetY;
 
-    var cli = chart.getChartLayoutInterface();
     var box = cli.getChartAreaBoundingBox();
 
     if(rtn.x > box.left + box.width)
@@ -421,7 +420,7 @@ function findChartMouseHAxis(event, chart)
     rtn.x -= box.left;
     rtn.y -= box.top;
 
-	return cli.getHAxisValue(rtn.x);
+	return rtn;
 }
 
 function chart_enter(event, chart)
@@ -429,9 +428,53 @@ function chart_enter(event, chart)
 	posMarker.setMap(map);
 }
 
+function findXLocForRow(cli, dist)
+{
+	var box = cli.getChartAreaBoundingBox();
+	var min, max, c, val, lastVal;
+
+	//First, check if it's outside the box
+	if(cli.getHAxisValue(0) >= dist)
+		return box.left;
+	else if(cli.getHAxisValue(box.width) <= dist)
+		return box.width;
+
+	val = -1;
+	lastVal = -1;
+	min = 0;
+	max = box.width;
+	c = 0;
+
+	while(val !== dist)
+	{
+		c = min + ((max-min) / 2);
+		val = cli.getHAxisValue(c);
+
+		if(val === lastVal)
+			return c;
+
+		lastVal = val;
+		
+		if(val > dist)
+			max = c;
+		else if(val < dist)
+			min = c;
+		else
+			return c;
+	}
+	
+	return c;
+}
+
 function chart_move(event, chart)
 {
-	var dist = findChartMouseHAxis(event, chart);
+	var cli = chart.getChartLayoutInterface();
+	var mousePos = findChartMouseHAxis(event, cli);
+
+	if(!mousePos)
+		return;
+	
+	var dist = cli.getHAxisValue(mousePos.x);
 
 	var eleRow = dataTable_getRowForDist(data_ele, 0, dist);
 	var spdRow = dataTable_getRowForDist(data_spd, 0, dist);
@@ -442,6 +485,23 @@ function chart_move(event, chart)
 	var time = gpxData.racePace.streams.time.data[eleRow];
 
 	set_targets(dist, ele, grade, time, speed, {lat: gpxData.racePace.streams.latlng.data[eleRow][0], lng: gpxData.racePace.streams.latlng.data[eleRow][1]});
+
+	//Set chart lines
+	if(chart === chart_ele)
+	{
+		var pos = findXLocForRow(chart_spd.getChartLayoutInterface(), dist);
+		$('#chart-line-spd').css({left: pos});
+
+		$('#chart-line-ele').css({left: mousePos.x});
+	}
+	else
+	{
+		var pos = findXLocForRow(chart_ele.getChartLayoutInterface(), dist);
+		$('#chart-line-ele').css({left: pos});
+
+		$('#chart-line-spd').css({left: mousePos.x});
+	}
+	
 }
 
 function chart_leave(event, chart)
@@ -453,6 +513,10 @@ function chart_leave(event, chart)
 	spdObj.html('---');
 
 	posMarker.setMap(null);
+
+	//Set chart lines
+	$('#chart-line-ele').css({left: 0});
+	$('#chart-line-spd').css({left: 0});
 }
 
 function initGraph() {

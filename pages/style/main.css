@@ -158,3 +158,14 @@ body {
 	background-color: #eee;
 	font-weight: bold;
 }
+
+.chart-line {
+	border-left: 1px solid #333;
+	position: absolute;
+	height: 100%;
+	width: 1px;
+	left: 0px;
+	top: 0px;
+	z-index: 10;
+	pointer-events: none;
+}

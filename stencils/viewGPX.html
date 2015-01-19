@@ -84,8 +84,9 @@
             <tr>
               <td style="width:100px">
               </td>
-              <td>
+              <td style="position: relative">
                 <div id="graph-canvas-ele" style="width: 100%; height: 200px;" onmouseover="chart_enter(event, chart_ele)" onmouseout="chart_leave(event, chart_ele)" onmousemove="chart_move(event, chart_ele)"></div>
+                <div id="chart-line-ele" class="chart-line"></div>
               </td>
               <td style="width: 150px">
                 <ul class="list-group" style="width: 100%">
@@ -102,8 +103,9 @@
             <tr>
               <td style="width:100px">
               </td>
-              <td>
-              <div id="graph-canvas-spd" onmouseover="chart_enter(event, chart_spd)" onmouseout="chart_leave(event, chart_spd)" onmousemove="chart_move(event, chart_spd)" style="width: 100%; height: 150px;"></div>
+              <td style="position: relative">
+                <div id="graph-canvas-spd" onmouseover="chart_enter(event, chart_spd)" onmouseout="chart_leave(event, chart_spd)" onmousemove="chart_move(event, chart_spd)" style="width: 100%; height: 150px;"></div>
+                <div id="chart-line-spd" class="chart-line"></div>
               </td>
               <td style="width:150px; height: 150px">
                 <ul class="list-group" style="width: 100%; height: 100%; display: table">

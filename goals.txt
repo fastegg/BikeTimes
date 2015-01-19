@@ -1,7 +1,8 @@
 Goals for Monday:
 
-(1)Charts dont suck to hover over
-(1.5)Charts Zoom In Together
+(1)Charts dont suck to hover over - DONE!!!
+(1.5)Charts Zoom In Together - DONE!!!
+
 (2)Unit Conversion works for graphs
 (3)Project works on huroku
 (4)Graphical Icons for Maps
