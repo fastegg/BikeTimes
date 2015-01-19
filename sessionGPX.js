@@ -23,7 +23,7 @@ function getGPXJS(req, res)
 
 		viewGPXJS = viewGPXJS.replace('//GPXDATAREPLACE//','gpxData = ' + JSON.stringify(sessionData.racePace) + ';');
 
-		res.send(viewGPXJS);
+		res.end(viewGPXJS);
 	}
 }
 
@@ -55,28 +55,6 @@ function getGPX(req, res)
 
 var sessions = {};
 var iMaxID = 0;
-
-/*
-function useSessionGPX(req, res, next)
-{
-	var curSession = sessions[req.session.id];
-
-	if(curSession === undefined)
-	{
-		curSession = {};
-		curSession.id = ++iMaxID;
-		curSession.GPX = undefined;
-
-		sessions[curSession.id] = curSession;
-
-		req.session.id = curSession.id;
-	}
-
-	req.gpxSession = curSession;
-
-	next();
-}
-*/
 
 function useGPX(req, res, next)
 {
@@ -141,7 +119,7 @@ function viewGPX(req, res)
 	
 	if(sessionData !== undefined && sessionData.GPX !== undefined)
 	{
-		res.send(stencil.fillStencilWithReq('viewGPX', req));
+		res.end(stencil.fillStencilWithReq('viewGPX', req));
 	}
 	else
 	{
