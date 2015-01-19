@@ -161,7 +161,7 @@ function lerp(a, b, p) {
 var data_ele;
 var data_spd;
 
-function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, racepace)
+function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, racepace, conversionspd, conversionele)
 {
 	data_ele = new google.visualization.DataTable();
 	data_spd = new google.visualization.DataTable();
@@ -225,6 +225,13 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
     		n++;
     	}
 
+    	if(conversionspd && conversionspd != 1.0)
+    	{
+    		dist *= conversionspd;
+    		kph *= conversionspd;
+    		kph_rp *= conversionspd;
+    	}
+
     	data_spd.addRow([dist, kph, kph_rp]);
     }
 
@@ -266,7 +273,12 @@ function graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, orig, r
 				}
 			}
 
-			data_ele.addRow([racepace.streams.distance.data[i], ele]);
+			if(conversionele && conversionele != 1.0)
+	    	{
+	    		ele *= conversionele;
+	    	}
+
+			data_ele.addRow([racepace.streams.distance.data[i] * conversionspd, ele]);
 		}
 	}
 
@@ -323,14 +335,20 @@ function displayTime(time, displayHours, displayMins, padSeconds)
 
 function set_targets(dist, ele, grade, time, speed, pos)
 {
-	distObj.html(round(dist,2) + ' km');
-	eleObj.html(round(ele,2) + ' m');
+	if(units === 1)
+	{
+		distObj.html(round(dist,2) + ' mi');
+		eleObj.html(round(ele,2) + ' ft');
+	}
+	else
+	{
+		distObj.html(round(dist,2) + ' km');
+		eleObj.html(round(ele,2) + ' m');
+		
+	}
 	gradeObj.html(round(grade*100,1) + '%');
 	timeObj.html(displayTime(time,true));
 	spdObj.html(round(speed,2));
-
-	if(posMarker.getMap() === null)
-		posMarker.setMap(map);
 
 	posMarker.setPosition(new google.maps.LatLng(pos.lat, pos.lng));
 }
@@ -479,7 +497,7 @@ function chart_move(event, chart)
 	var eleRow = dataTable_getRowForDist(data_ele, 0, dist);
 	var spdRow = dataTable_getRowForDist(data_spd, 0, dist);
 
-	var ele = gpxData.racePace.streams.altitude.data[eleRow];
+	var ele = data_ele.getValue(eleRow,1);
 	var grade = eleRow > 1 ? ((gpxData.racePace.streams.altitude.data[eleRow] - gpxData.racePace.streams.altitude.data[eleRow-1]) / 1000) / (gpxData.racePace.streams.distance.data[eleRow] - gpxData.racePace.streams.distance.data[eleRow-1]) : 0;
 	var speed = data_spd.getValue(spdRow, 2);
 	var time = gpxData.racePace.streams.time.data[eleRow];
@@ -518,6 +536,19 @@ function chart_leave(event, chart)
 	$('#chart-line-ele').css({left: 0});
 	$('#chart-line-spd').css({left: 0});
 }
+var explorer = {
+	maxZoomOut: 1,
+	maxZoomIn: 0.01,
+	actions: ['dragToZoom', 'rightClickToReset'],
+	axis: 'horizontal'
+}
+
+var tooltip = {
+	trigger: 'none'
+}
+var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
+var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
+
 
 function initGraph() {
 	chart_ele = new google.visualization.AreaChart(document.getElementById('graph-canvas-ele'));
@@ -529,21 +560,7 @@ function initGraph() {
 	eleObj = $('#ele-info-ele');
 	spdObj = $('#spd-info-kph');
 
-	var explorer = {
-		maxZoomOut: 1,
-		maxZoomIn: 0.01,
-		actions: ['dragToZoom', 'rightClickToReset'],
-		axis: 'horizontal'
-	}
-
-	var tooltip = {
-		trigger: 'none'
-	}
-
-	var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
-	var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
-
-	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace);
+	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 1.0, 1.0);
 }
 
 google.maps.event.addDomListener(window, 'load', initMap);
@@ -553,26 +570,14 @@ google.setOnLoadCallback(initGraph);
 
 var units = 0; //0 == KPH, 1 == MPH
 
-function ToggleUnits()
-{
-	units = !units;
-
-	if(units) //Miles / feet
-	{
-		$("#unitsCSS").attr("href","style/mph.css");
-	}
-	else
-	{
-		$("#unitsCSS").attr("href","style/kph.css");
-	}
-}
-
 function setKPH()
 {
 	if(units != 0)
 		$("#unitsCSS").attr("href","style/kph.css");
 
 	units = 0;
+
+	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 1.0, 1.0);
 }
 
 function setMPH()
@@ -581,4 +586,6 @@ function setMPH()
 		$("#unitsCSS").attr("href","style/mph.css");
 
 	units = 1;
+
+	graphOrigPoints(chart_ele, options_ele, chart_spd, options_spd, gpxData.orig, gpxData.racePace, 0.621371, 3.28084);
 }

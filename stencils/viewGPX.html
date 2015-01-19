@@ -24,9 +24,13 @@
       <h2 class="detail-title" data-if="!{.name}">An Activity Recorded On <span data-path=".start_date_local.displayDateShort()">01/31/1015</span></h2>
       <!-- Quick options -->
       <div class="options">
-        <div class="btn-group" role="group" aria-label="...">
-          <button type="button" class="btn btn-primary active" onclick="setKPH()">KPH/M</button>
+        <div class="btn-group KPH" role="group" aria-label="...">
+          <button type="button" class="btn btn-primary active">KPH/M</button>
           <button type="button" class="btn btn-default" onclick="setMPH()">MPH/Ft</button>
+        </div>
+        <div class="btn-group MPH" role="group" aria-label="...">
+          <button type="button" class="btn btn-default" onclick="setKPH()">KPH/M</button>
+          <button type="button" class="btn btn-primary active">MPH/Ft</button>
         </div>
       </div>
       <!-- Race Pace Title -->
@@ -109,7 +113,7 @@
               </td>
               <td style="width:150px; height: 150px">
                 <ul class="list-group" style="width: 100%; height: 100%; display: table">
-                  <li id="spd-info" class="list-group-item chart-info" style="height: 100%; display: table-cell; vertical-align: middle"><p id="spd-info-kph">----</p><p>KPH</p></li>
+                  <li id="spd-info" class="list-group-item chart-info" style="height: 100%; display: table-cell; vertical-align: middle"><p id="spd-info-kph">----</p><p><span class="KPH">KPH</span><span class="MPH">MPH</span></p></li>
                 </ul>
               </td>
             </tr>
