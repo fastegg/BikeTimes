@@ -368,7 +368,7 @@ function chart_hovor_spd(data)
 		data.column = 2
 		chart_spd.setSelection({row: data.row, column: 2});
 	}
-	
+
 	var dist = data_spd.getValue(data.row, 0);
 
 	var eleRow = dataTable_getRowForDist(data_ele, 0, dist);
@@ -459,3 +459,35 @@ google.maps.event.addDomListener(window, 'load', initMap);
 
 google.load("visualization", "1", {packages:["corechart"]});
 google.setOnLoadCallback(initGraph);
+
+var units = 0; //0 == KPH, 1 == MPH
+
+function ToggleUnits()
+{
+	units = !units;
+
+	if(units) //Miles / feet
+	{
+		$("#unitsCSS").attr("href","style/mph.css");
+	}
+	else
+	{
+		$("#unitsCSS").attr("href","style/kph.css");
+	}
+}
+
+function setKPH()
+{
+	if(units != 0)
+		$("#unitsCSS").attr("href","style/kph.css");
+
+	units = 0;
+}
+
+function setMPH()
+{
+	if(units != 1)
+		$("#unitsCSS").attr("href","style/mph.css");
+
+	units = 1;
+}

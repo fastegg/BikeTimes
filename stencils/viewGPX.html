@@ -11,6 +11,8 @@
 <script src="custom/viewGPX.js"></script>
 
 <link href="style/main.css" rel="stylesheet">
+<link id="unitsCSS" href="style/kph.css" rel="stylesheet">
+
 </head>
   <body>
     <span data-stencil="navbar"></span>
@@ -23,13 +25,14 @@
       <!-- Quick options -->
       <div class="options">
         <div class="btn-group" role="group" aria-label="...">
-          <button type="button" class="btn btn-primary active">KPH/M</button>
-          <button type="button" class="btn btn-default">MPH/Ft</button>
+          <button type="button" class="btn btn-primary active" onclick="setKPH()">KPH/M</button>
+          <button type="button" class="btn btn-default" onclick="setMPH()">MPH/Ft</button>
         </div>
       </div>
       <!-- Race Pace Title -->
       <div class="racepace-container">
-        <img data-if="req.sessionData.strava.athlete" class="avatar-large" data-set-src="req.sessionData.strava.athlete.profile">
+        <img data-if="req.sessionData.strava.activity.athlete" class="avatar-large" data-set-src="req.sessionData.strava.activity.athlete.profile">
+        <img data-if="!{req.sessionData.strava.activity}" class="avatar-large" src="avatar/athlete/large.png">
         <div class="racepace-header" data-path="req.sessionData.racePace.racePace">
           <h4 class="label label-primary racepace-label">Race Pace</h4>
           <h1><span class="label label-primary racepace-time-label" data-path=".racepace_time.displayTime(false, true)">1:43:22</span></h1>
@@ -40,11 +43,14 @@
             <table class="data-table-main data-table data-table-center">
               <col><col><col><col><col>
               <tr>
-                <td style="width: 160px"><h2><bold><span data-path=".distance.MtoKM().round(1)">49.6</span><span class="subheader">km</span></bold></h2></td>
-                <td style="width: 160px"> <h2><bold data-if="!{.total_elevation_gain}">----</bold><bold><span data-if=".total_elevation_gain" data-path=".total_elevation_gain.round(0)">2245</span><span class="subheader">m</span></bold></h2></td>
+                <td style="width: 160px">
+                  <h2><bold class="KPH"><span data-path=".distance.MtoKM().round(1)">49.6</span><span class="subheader">km</span></bold></h2>
+                  <h2><bold class="MPH"><span data-path=".distance.MtoMI().round(1)">49.6</span><span class="subheader">mi</span></bold></h2>
+                </td>
+                <td style="width: 160px"> <h2><bold data-if="!{.total_elevation_gain}">----</bold><bold class="KPH"><span data-if=".total_elevation_gain" data-path=".total_elevation_gain.round(0)">2245</span><span class="subheader">m</span></bold><bold class="MPH"><span data-if=".total_elevation_gain" data-path=".total_elevation_gain.MtoFT().round(0)">2245</span><span class="subheader">ft</span></bold></h2></td>
                 <td style="width: 160px"></td>
-                <td style="width: 160px"><h2><bold data-path=".moving_time.displayTime(false, true)">1:23:45</bold></h2></td>
-                <td style="width: 160px"><h2><bold data-path=".elapsed_time.displayTime(false, true)">1:23:45</bold></h2></td>
+                <td style="width: 160px"><h2><bold data-path="req.sessionData.racePace.racePace.moving_time.displayTime(false, true)">1:23:45</bold></h2></td>
+                <td style="width: 160px"><h2><bold data-path="req.sessionData.racePace.racePace.elapsed_time.displayTime(false, true)">1:23:45</bold></h2></td>
               </tr>
               <tr>
                 <td><p><bold>Distance</bold></p></td>
@@ -55,7 +61,7 @@
               </tr>
             </table>
           </div>
-          <p data-path="req.sessionData.racePace.racePace" style="border-top: solid 1px; border-color: #CCC; padding-top: 10px">Avg KPH: <span data-path=".average_speed.MPStoKPH().round(1)">19.4</span> | <a href="javascript:toggleStops()">Stops Detected: <span data-path=".removed.length">4</span></a> | Time Difference: <span data-path=".timegained.displayTime(false,false)">45</span><span data-if="{.timegained} <= 60"> seconds</span></p>
+          <p data-path="req.sessionData.racePace.racePace" style="border-top: solid 1px; border-color: #CCC; padding-top: 10px"><span class="KPH">Avg KPH: <span data-path=".average_speed.MPStoKPH().round(1)">19.4</span></span><span class="MPH">Avg MPH: <span data-path=".average_speed.MPStoMPH().round(1)">19.4</span></span> | <a href="javascript:toggleStops()">Stops Detected: <span data-path=".removed.length">4</span></a> | Time Difference: <span data-path=".timegained.displayTime(false,false)">45</span><span data-if="{.timegained} <= 60"> seconds</span></p>
         </div>
       </div>
       <!-- General Info and Map -->

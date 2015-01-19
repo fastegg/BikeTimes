@@ -181,7 +181,7 @@ function smoothenStops(activity, removeLocations)
 			}
 		}
 
-		while (end < activity.streams.velocity.data.length)
+		while (end < activity.streams.velocity.data.length-1)
 		{
 			end++;
 
