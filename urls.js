@@ -82,7 +82,6 @@ module.exports.gets = {
 		url: ['*.png'],
 		func: function(req, res)
 		{
-			console.log('Requesting ' + req.url.slice(1));
 			var img = pages.getImage(req.url.slice(1));
 
 			if(img)
