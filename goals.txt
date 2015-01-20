@@ -13,8 +13,10 @@ BONUS!!!
 
 
 Goals for Tuesday:
-Add graphics to pages
-Finish about & contact page
+(1)Finish about & contact page
+(2)Add graphics to pages
+
+BONUS!!!!
 Links for test data routes
 Find out how to see public activites
 
@@ -23,4 +25,5 @@ Mobile views
 Issue tracker/reporter
 Catch all crashes
 Track emails for accounts
-Database for all activites viewed with times
+Database for all activites viewed with times, show previously calculated times in strava list view
+RacePace Icon for pages and strava auth page
