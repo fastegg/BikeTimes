@@ -546,8 +546,8 @@ var explorer = {
 var tooltip = {
 	trigger: 'none'
 }
-var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
-var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format:'#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
+var options_ele = {colors: ['#CCC'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: units ? '#mi' : '#km'}, legend:{position: 'none'}, chartArea: {width: '100%'}, crosshair: {orientation: 'vertical'}};
+var options_spd = {colors: ['#CCC', '#337ab7'], focus: 'category', explorer: explorer, tooltip: tooltip, hAxis: {gridlines: {count: 4}, format: units ? '#mi' : '#km'}, legend: {position: 'none'}, chartArea: {width: '100%'}};
 
 
 function initGraph() {
