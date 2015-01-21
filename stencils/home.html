@@ -7,22 +7,47 @@
 </head>
 <body>
 	<span data-stencil='navbar'></span>
-	<div class="container">
-		<div class="jumbotron">
-		    <div class="starter-template">
-		      <h1>Welcome to Race Pace</h1>
-		      <p class="lead">Race Pace can take your latest GPS workout, remove all the stops and simulate what it might be like if you kept that same pace on a closed course.</p>
-		      <p class="lead">Get Started:</p>
-		      <form method ="POST" id="gpxInput" action="uploadGPX" name="uploadGPX" class="hidden" enctype="multipart/form-data">
-		        <input id="gpxFileSelect" name="gpxFile" accept=".gpx" type="file">
-		      </form>
-		      <script>
-		        document.getElementById('gpxFileSelect').addEventListener('change', readGPXFile, false);
-		      </script>
-		      <p><a class="btn btn-primary btn-lg" onclick="$('#gpxFileSelect').click();" role="button">Upload .GPX File</a> Or <a class="btn btn-primary btn-lg" data-set-href="req.sessionData.strava.authLink" role="button">Sign into Strava</a></p>
-		    </div>
-		</div>
+	<div class="jumbotron jumbotron-home">
+	    <div class="jumbotron-container">
+	      <img src="img/RacePaceIcon-large.png">
+	      <img src="img/RacePaceLogo-med.png">
+	      <p class="lead">Get Started:</p>
+	      <form method ="POST" id="gpxInput" action="uploadGPX" name="uploadGPX" class="hidden" enctype="multipart/form-data">
+	        <input id="gpxFileSelect" name="gpxFile" accept=".gpx" type="file">
+	      </form>
+	      <script>
+	        document.getElementById('gpxFileSelect').addEventListener('change', readGPXFile, false);
+	      </script>
+	      <p><a class="btn btn-primary btn-lg" onclick="$('#gpxFileSelect').click();" role="button">Upload .GPX File</a> or <a data-set-href="req.sessionData.strava.authLink" role="button"><img src="http://strava.github.io/api/images/ConnectWithStrava@2x.png" style="height:45px"></a></p>
+	    </div>
 	</div>
+
+	<div class="jumbotron jumbotron-left jumbotron-description">
+    	<h2>What is Race Pace?</h2>
+    	<p>Race Pace is a tool used for manipulating your completed workouts by removing your stopping points, and manipulating the data as if the stop never happened.</p>
+    	<p>This allows you, the athlete, get a better idea of how fast you actually are, and how fast you might be come race day.</p>
+    </div>
+
+    <div class="jumbotron jumbotron-right jumbotron-maps">
+    	<h2>See The Results</h2>
+    	<p>See the calculations first hand using familar graphing tools, and view your stopping locations with Google Maps.</p>
+    </div>
+
+    <div class="jumbotron jumbotron-left jumbotron-compare">
+    	<h2>Accuratly Compare Rides</h2>
+    	<p>Accuratly compare your rides against each other. Know how much faster you were against yourself on another day, or compare yourself to a friend who rode the same route a week ago, regardless of how many lights or stop signs you may have hit.</p>
+    </div>
+
+    <div class="jumbotron jumbotron-right jumbotron-safe">
+    	<h2>Ride Safer</h2>
+    	<p>No more jumping lights or splitting pedestrians just because your attempting to get that PR during your training ride. Stop when conditions require you too, and know that with Race Pace, your time will not be penalized</p>
+    </div>
+
+    <div class="jumbotron jumbotron-container jumbotron-signup">
+    	<h2>Get Started!</h2>
+    	<p>Race Pace connects to your Strava account, or can read your lasest GPX print out from your GPS enabled device. Best of all, it's Free! So why not give it a try?</p>
+    	<p><a class="btn btn-primary btn-lg" onclick="$('#gpxFileSelect').click();" role="button">Upload .GPX File</a> or <a data-set-href="req.sessionData.strava.authLink" role="button"><img src="http://strava.github.io/api/images/ConnectWithStrava@2x.png" style="height:45px"></a></p>
+    </div>
 	<span data-stencil='footer'></span>
 	<span data-stencil='last'></span>
 </body>

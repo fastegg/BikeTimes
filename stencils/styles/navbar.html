@@ -8,7 +8,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="/">Race Pace</a>
+      <a class="navbar-brand" href="/" style="position: relative;top: -5px;"><img alt="Brand" src="img/RacePaceIcon-small.png" style="display:initial;"> Race Pace</a>
     </div>
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
@@ -21,7 +21,7 @@
         <li data-if=".strava.stravaToken">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
             <p class="navbar-text relative"><img class="avatar" data-set-src=".strava.athlete.profile_medium"></p>
-            <span data-path="{.strava.athlete.firstname} + ' ' + {.strava.athlete.lastname}">John Smith</span>  <span class="glyphicon glyphicon-chevron-down"></span>
+            <span data-path="{.strava.athlete.firstname} + ' ' + {.strava.athlete.lastname}">John Smith</span>  <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
           </a>
           <ul class="dropdown-menu" role="menu">
             <li><a href="/strava">Activity List</a></li>
@@ -29,7 +29,7 @@
           </ul>
         </li>
 
-        <li data-if="!{.strava.stravaToken}"><a data-set-href="req.sessionData.strava.authLink"><img src="http://strava.github.io/api/images/ConnectWithStrava.png"></a></li>
+        <li data-if="!{.strava.stravaToken}"><a data-set-href="req.sessionData.strava.authLink" style="padding:10px"><img src="http://strava.github.io/api/images/ConnectWithStrava.png"></a></li>
         <li data-if="!{.strava.stravaToken}">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
             <span class="glyphicon glyphicon-chevron-down"></span>

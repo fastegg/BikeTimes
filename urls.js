@@ -43,6 +43,13 @@ module.exports.gets = {
 		}
 	},
 
+	toc: {
+		url: '/toc',
+		func: function(req, res) {
+			res.end(stencil.fillStencilWithReq('toc', req));
+		}
+	},
+
 	strava: {
 		url: '/strava',
 		func: strava.getLists
@@ -79,7 +86,7 @@ module.exports.gets = {
 	},
 
 	png: {
-		url: ['*.png'],
+		url: ['*.png', '*.jpg'],
 		func: function(req, res)
 		{
 			var img = pages.getImage(req.url.slice(1));

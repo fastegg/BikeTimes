@@ -26,9 +26,10 @@ function createStopMarkers(data){
 		var marker = new google.maps.Marker({
 	      position: new google.maps.LatLng(data[i].lat, data[i].lon),
 	      map: null,
-	      //icon: startImage,
-	      title:i+""
-		});
+	      icon: stopImage,
+	      title:i+"",
+	      zIndex: 3
+		}); 
 
 		stopMarkers.push(marker);
 	}
@@ -40,52 +41,57 @@ function toggleStops(){
 	for(i=0;i<stopMarkers.length;i++)
 	{
 		if(bShowingMarkers)
+		{
 			stopMarkers[i].setMap(null);
+		}
 		else
+		{
+			stopMarkers[i].setAnimation(google.maps.Animation.DROP);
 			stopMarkers[i].setMap(map);
+		}
 	}
 
 	bShowingMarkers = !bShowingMarkers;
 }
 
 var startImage = {
-	url: 'img/mapicons/marker-icon-green.png',
+	url: 'img/mapicons/map-icon-start.png',
 	// This marker is 20 pixels wide by 32 pixels tall.
-	size: new google.maps.Size(32, 32),
+	size: new google.maps.Size(48, 49),
 	// The origin for this image is 0,0.
 	origin: new google.maps.Point(0,0),
-	// The anchor for this image is the base of the flagpole at 0,32.
-	anchor: new google.maps.Point(0, 16)
+	// The anchor for this image is the base of the flagpole at 0,42.
+	anchor: new google.maps.Point(0, 49)
 };
 
 var endImage = {
-	url: 'img/mapicons/marker-icon-red.png',
-	// This marker is 20 pixels wide by 32 pixels tall.
-	size: new google.maps.Size(32, 32),
+	url: 'img/mapicons/map-icon-finish.png',
+	// This marker is 20 pixels wide by 42 pixels tall.
+	size: new google.maps.Size(48, 49),
 	// The origin for this image is 0,0.
 	origin: new google.maps.Point(0,0),
-	// The anchor for this image is the base of the flagpole at 0,32.
-	anchor: new google.maps.Point(0, 16)
+	// The anchor for this image is the base of the flagpole at 0,42.
+	anchor: new google.maps.Point(48, 49)
 };
 
 var stopImage = {
-	url: 'img/mapicons/marker-icon-orange.png',
-	// This marker is 20 pixels wide by 32 pixels tall.
-	size: new google.maps.Size(32, 32),
+	url: 'img/mapicons/map-icon-stop.png',
+	// This marker is 20 pixels wide by 42 pixels tall.
+	size: new google.maps.Size(48, 49),
 	// The origin for this image is 0,0.
 	origin: new google.maps.Point(0,0),
-	// The anchor for this image is the base of the flagpole at 0,32.
-	anchor: new google.maps.Point(0, 16)
+	// The anchor for this image is the base of the flagpole at 0,42.
+	anchor: new google.maps.Point(24, 49)
 };
 
 var posImage = {
-	url: 'img/mapicons/marker-icon-blue.png',
-	// This marker is 20 pixels wide by 32 pixels tall.
+	url: 'img/mapicons/map-icon-pos.png',
+	// This marker is 20 pixels wide by 42 pixels tall.
 	size: new google.maps.Size(32, 32),
 	// The origin for this image is 0,0.
 	origin: new google.maps.Point(0,0),
-	// The anchor for this image is the base of the flagpole at 0,32.
-	anchor: new google.maps.Point(0, 16)
+	// The anchor for this image is the base of the flagpole at 0,42.
+	anchor: new google.maps.Point(16, 16)
 }
 
 function mapPoints(map, data)
@@ -119,15 +125,17 @@ function mapPoints(map, data)
     var startMarker = new google.maps.Marker({
       position: new google.maps.LatLng(data[0][0], data[0][1]),
       map: map,
-      //icon: startImage,
-      title:"Start"
+      icon: startImage,
+      title:"Start",
+      zIndex: 3
 	});
 
 	var endMarker = new google.maps.Marker({
       position: new google.maps.LatLng(data[data.length-1][0], data[data.length-1][1]),
       map: map,
-      //icon: endImage,
-      title:"Finish"
+      icon: endImage,
+      title:"Finish",
+      zIndex: 3
 	});
 }
 
@@ -149,8 +157,9 @@ function initMap() {
 	posMarker = new google.maps.Marker({
       position: null,
       map: null,
-      //icon: posImage,
-      title:i+""
+      icon: posImage,
+      title:i+"",
+      zIndex: 4
 	});
 }
 

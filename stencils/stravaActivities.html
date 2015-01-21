@@ -6,15 +6,16 @@
 </head>
 <body>
 	<span data-stencil='navbar'></span>
-	
+	<div class='jumbotron jumbotron-strava'>
+		<h1>My Activities</h1>
+	</div>
 	<div class="container">
-		<h1>Strava Activities</h1>
-		<div class="panel panel-default">
-		  <!-- Default panel contents -->
+		<div class="panel panel-default stravaList">
+		  <!-- Default panel contents
 		  <div class="panel-body">
-		    <h4>Choose from the following list of activites:</h4>
+		    <h1>Select from the following activites:</h1>
 		  </div>
-
+			-->
 		  <!-- Table -->
 		  <span data-if="{req.sessionData.strava.activities.length} == 0">
 		  	No Activites found!
@@ -51,7 +52,6 @@
 		  </span>
 		</div>
 	</div>
-	
 	<span data-stencil='footer'></span>
 	<span data-stencil='last'></span>
 </body>

@@ -9,6 +9,104 @@ body {
   margin-bottom: 60px;
 }
 
+.legal {
+	font-family: "Gotham SSm A","Gotham SSm B",Helvetica,Arial,sans-serif;
+}
+
+.jumbotron-home {
+	background-image: url('/img/HomeMain.jpg');
+	background-size: 100%;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	color: white;
+}
+
+.jumbotron-maps {
+	background-image: url('/img/GoogleMapsPreview2.png');
+	background-repeat: no-repeat;
+	background-position-y: 75%;
+	background-size: 50%;
+	background-color: #89c540;
+	padding-left: 350px;
+	padding-right: 40px;
+	padding-top: 40px;
+	padding-bottom: 40px;
+}
+
+.jumbotron-description {
+	background-color: #3179B5;
+	background-image: url('/img/RacePacePreview2.png');
+	background-repeat: no-repeat;
+	background-size: 300px;
+	padding-right: 350px;
+	padding-left: 40px;
+	padding-top: 40px;
+	padding-bottom: 40px;
+}
+
+.jumbotron-safe {
+	background-image: url('/img/RacePaceSafe.png');
+	background-repeat: no-repeat;
+	background-size: 300px;
+	background-position: left;
+	background-color: #5D5EAA;
+	padding-left: 350px;
+	padding-right: 40px;
+	padding-top: 40px;
+	padding-bottom: 40px;
+}
+
+.jumbotron-compare {
+	background-color: #F15E2E;
+	padding: 40px 40px;
+}
+
+.jumbotron-signup {
+	background-color: #71B1E1;
+}
+
+.jumbotron-contact {
+	background-image: url('/img/ContactMain.jpg');
+	background-size: 100%;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	color: white;
+}
+
+.jumbotron-about {
+	background-image: url('/img/AboutMain.jpg');
+	background-size: 100%;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	color: white;
+}
+
+.jumbotron-strava {
+	background-image: url('/img/StravaList.jpg');
+	background-size: 100%;
+	background-size: cover;
+	background-repeat: no-repeat;
+	min-height: 200px;
+	color: white;
+	text-align: center;
+}
+
+.jumbotron-view {
+	background-image: url('/img/viewMain.jpg');
+	background-size: cover;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	min-height: 200px;
+	text-align: left;
+}
+
+.stravaList {
+	
+}
+
 .subnavbar {
 	top: 50px;
 	z-index: 1;
@@ -18,14 +116,27 @@ body {
 	padding-top: 40px;
 }
 
-.starter-template {
+.jumbotron-container {
   padding: 40px 15px;
   text-align: center;
+  min-height: 250px;
+}
+
+.jumbotron-left {
+	text-align: left;
+	margin: 0px;
+	background-position: right;
+}
+
+.jumbotron-right {
+	text-align: right;
+	margin: 0px;
 }
 
 .data-table-center
 {
 	text-align: center;
+	margin: 0px;
 }
 
 .data-table-main td
