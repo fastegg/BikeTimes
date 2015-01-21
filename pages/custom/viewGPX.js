@@ -430,6 +430,12 @@ function findChartMouseHAxis(event, cli)
 
 	event = event || window.event; // IE-ism
 
+	if(!event.offsetX)
+	{
+		event.offsetX = event.layerX;
+		event.offsetY = event.layerY;
+	}
+
     rtn.x = event.offsetX;
     rtn.y = event.offsetY;
 
