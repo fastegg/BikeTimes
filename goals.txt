@@ -1,20 +1,26 @@
+<<<------- ISSUES!!!! -------->>>
+(1) Sessions doesn't differ from different browsers, possibly different computers
+(2) Roll over on graphs doesn't work on firefox, should check IE
+
 Goals for Monday:
 
 (1)Charts dont suck to hover over - DONE!!!
 (1.5)Charts Zoom In Together - DONE!!!
 (2)Unit Conversion works for graphs - DONE!!!
-
-(3)Project works on huroku
+(3)Project works on huroku - DONE!!!!
 
 BONUS!!!
-(4)Graphical Icons for Maps
+(4)Graphical Icons for Maps - DONE!!!
+
 (5)Graphical Icon for no profile
 (6)Head out on bike ride for test data
 
 
 Goals for Tuesday:
-(1)Finish about & contact page
-(2)Add graphics to pages
+(1)Finish about & contact page - DONE!!!
+(2)Add graphics to pages - DONE!!!
+
+(3)Fav Icon
 
 BONUS!!!!
 Links for test data routes
@@ -27,3 +33,6 @@ Catch all crashes
 Track emails for accounts
 Database for all activites viewed with times, show previously calculated times in strava list view
 RacePace Icon for pages and strava auth page
+Add information to the analysis screen beside the charts. Ideas: Min/Max/Total Gain/Total Decent elevation, Min Max Speed
+Somehow get Hill climbing info in it (like from MapMyRide)
+Options to change graphs to be over time, instead of over distance
