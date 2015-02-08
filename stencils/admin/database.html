@@ -1,0 +1,22 @@
+<html>
+<head>
+	<span data-stencil='head'></span>
+</head>
+<body>
+	<span data-stencil='navbar'></span>
+	
+	<div class="container">
+		<p>Total Accounts: <span data-path="obj.length">55</span></p>
+		<table data-path="obj" class="table">
+			<tr>
+				<td data-path=".stravaid"></td>
+				<td data-path=".email"></td>
+				<td><a data-set-href="/entries?id={.stravaid}">View Entries</a></td>
+			</tr>
+		</table>
+	</div>
+	
+	<span data-stencil='footer'></span>
+	<span data-stencil='last'></span>
+</body>
+</html>

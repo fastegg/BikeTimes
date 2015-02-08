@@ -10,7 +10,8 @@
     "connect-busboy": "0.0.2",
     "cookie-session": "1.1.0",
     "xml2js": "~0.4.4",
-    "strava-v3": "~1.5.3"
+    "strava-v3": "~1.5.3",
+    "mongoose": "~3.8.21"
   },
   "scripts": {
     "start": "node server.js"

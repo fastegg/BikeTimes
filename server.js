@@ -5,8 +5,11 @@ var bb = require('connect-busboy');
 var session = require('cookie-session');
 var errorReport = require('./lib/errorReport.js');
 var sessionData = require('./lib/sessionData.js');
+var accounts = require('./lib/accounts.js');
 
-app.set('port', (process.env.PORT || 3000))
+app.set('port', (process.env.PORT || 3000));
+
+accounts.connect();
 
 app.set('trust proxy', 1); // trust first proxy
 

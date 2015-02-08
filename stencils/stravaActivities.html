@@ -29,6 +29,7 @@
 				    <th>Title</th>
 				    <th>Distance</th>
 				    <th>Elevation</th>
+				    <th><span style="color:#1b809e; font-weight:bold">Race Pace</span></th>
 				    <th></th> <!-- Race Pace button -->
 				</tr>
 				<tr data-set-onmouseover="highlightRow('activities',{%index}+1)" class="activity">
@@ -39,6 +40,7 @@
 					<td data-if="!{.name}"><span data-path=".location_city">San Jose</span>, <span data-path=".location_state"></span></td>
 					<td><span data-path=".distance.MtoKM().round(1)">99</span> KM</td>
 					<td><span data-path=".total_elevation_gain.round(0)">9999</span> M</td>
+					<td><span data-if="!{req.sessionData.strava.account.entries}[{.id}]">----</span><span data-if="{req.sessionData.strava.account.entries}[{.id}]" data-path="{req.sessionData.strava.account.entries}[{.id}].racepace.displayTime(false,true)" style="color:#1b809e; font-weight:bold">1:23:45</span></td>
 					<td width="60px"><a type="button" class="btn btn-default hideWhenUnactive hidden" data-set-href="/stream?id={.id}"><span class="glyphicon glyphicon-chevron-right"></span></a></td>
 				</tr>
 			</table>

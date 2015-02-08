@@ -3,6 +3,9 @@ var sessionGPX = require('./sessionGPX.js');
 var stencil = require('./lib/stencil.js');
 var error = require('./lib/errorReport.js');
 var strava = require('./lib/strava');
+var accounts = require('./lib/accounts.js');
+
+var url = require('url');
 
 stencil.loadStencils(process.cwd() + '/stencils/');
 
@@ -83,6 +86,69 @@ module.exports.gets = {
 	viewGPXJS: {
 		url: ['/custom/viewGPX.js'],
 		func: sessionGPX.getJS
+	},
+
+	database: {
+		url: '/database',
+		func: function(req, res)
+		{
+			if(strava.isMasterAccount(req, res))
+			{
+				accounts.getAccounts(function(err, accounts) {
+					if(!err)
+					{
+						console.log(accounts);
+						res.end(stencil.fillStencilWithReq('database', req, accounts));
+					}
+					else
+					{
+						error.logError(err, req, res, 'Unable to load accounts!' + error.toString());
+						res.redirect('/');
+					}
+				});
+			}
+			else
+			{
+				error.logWarning('Unauthorized request for /Database', req, res, "Unauthorized");
+				res.redirect('/');
+			}
+			
+		}
+	},
+
+	databaseEntries: {
+		url: '/entries',
+		func: function(req, res)
+		{
+			if(strava.isMasterAccount(req, res))
+			{
+				var urlParsed = url.parse(req.url, true);
+				var ownerID = undefined;
+				
+				if(urlParsed && urlParsed.query && urlParsed.query.id)
+				{
+					ownerID = urlParsed.query.id;
+				}
+
+				accounts.getEntriesForID(ownerID, function(err, entries) {
+					if(!err)
+					{
+						console.log(entries);
+						res.end(stencil.fillStencilWithReq('entries', req, entries));
+					}
+					else
+					{
+						error.logError(err, req, res, 'Unable to load entries!' + error.toString());
+						res.redirect('/');
+					}
+				});
+			}
+			else
+			{
+				error.logWarning('Unauthorized request for /entries', req, res, "Unauthorized");
+				res.redirect('/');
+			}
+		}
 	},
 
 	png: {
