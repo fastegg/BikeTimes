@@ -16,8 +16,7 @@ app.set('trust proxy', 1); // trust first proxy
 //express cookie Session
 app.use(session({
 	name: 'racepacesession',
-	secret: 'wordSecret1forRacePace',
-	overwrite: true
+	secret: 'wordSecret1forRacePace'
 }));
 
 app.use(sessionData({}));
