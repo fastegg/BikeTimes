@@ -97,7 +97,6 @@ module.exports.gets = {
 				accounts.getAccounts(function(err, accounts) {
 					if(!err)
 					{
-						console.log(accounts);
 						res.end(stencil.fillStencilWithReq('database', req, accounts));
 					}
 					else
