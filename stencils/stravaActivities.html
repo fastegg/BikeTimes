@@ -17,11 +17,11 @@
 		  </div>
 			-->
 		  <!-- Table -->
-		  <span data-if="{req.sessionData.strava.activities.length} == 0">
+		  <span data-if="{req.sessionData.strava.activitiesPage.length} == 0">
 		  	No Activites found!
 		  </span>
-		  <span data-if="{req.sessionData.strava.activities.length} > 0" >
-			<table id="activities" class="table" data-path="req.sessionData.strava.activities">
+		  <span data-if="{req.sessionData.strava.activitiesPage.length} > 0" >
+			<table id="activities" class="table" data-path="req.sessionData.strava.activitiesPage">
 				<tr data-if="{%index}===0" class="active primary">
 				  	<th></th> <!-- Map preview -->
 				    <th>Type</th>
@@ -47,8 +47,9 @@
 
 			<div class="panel-body">
 				<ul class="pager">
-			    	<li class="previous" data-if="%urlVars.page>1"><a data-set-href="/strava?page={%urlVars.page-1}"><span aria-hidden="true">&larr;</span> Newer</a></li>
-			    	<li class="next" data-if="req.sessionData.strava.activities.length === 20"><a data-set-href="/strava?page={%urlVars.page-1+2 || 2}">Older <span aria-hidden="true">&rarr;</span></a></li>
+			    	<li data-run='if ({%urlVars.page}===undefined) {%urlVars.page=1};' data-set-class="previous {%urlVars.page.map('1:disabled')}"><a data-set-href="/strava?page={%urlVars.page-1|1}"><span aria-hidden="true">&larr;</span> Newer</a></li>
+			    	<li class="refresh"><a data-set-href="/strava?page={%urlVars.page}&refresh=1"><span class="glyphicon glyphicon-refresh"></span> Refresh List</a></li>
+			    	<li data-run='({%urlVars.page}) * 20 >= {req.sessionData.strava.activities.length} ? {%urlVars.hasnext=0} : {%urlVars.hasnext=1};' data-set-class="next {%urlVars.hasnext.map('0:disabled')}"><a data-set-href="/strava?page={%urlVars.page-1+2 || 2}">Older <span aria-hidden="true">&rarr;</span></a></li>
 				</ul>
 			</div>
 		  </span>

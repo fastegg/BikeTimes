@@ -211,7 +211,12 @@ module.exports.uses = {
 
 	strava: {
 		url: undefined, //All pages
-		func: strava.use
+		func: strava.useAthlete
+	},
+
+	stravaAccount:{
+		url: undefined, //All pages
+		func: strava.useAccount
 	},
 
 	stravaMessage: {
